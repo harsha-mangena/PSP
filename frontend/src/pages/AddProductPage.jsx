@@ -1,51 +1,17 @@
-import { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ErrorMessage from '../components/ErrorMessage'
-import {
-  createProduct,
-  selectCreateError,
-  selectCreateStatus,
-  selectLastCreated,
-} from '../features/products/productsSlice'
+import { useProductForm } from '../hooks/useProductForm'
 
-const EMPTY_FORM = { name: '', price: '', stock: '' }
-
+/**
+ * UI only. Form state, coercion and submit handling live in useProductForm.
+ */
 function AddProductPage() {
-  const dispatch = useDispatch()
   const navigate = useNavigate()
-  const createStatus = useSelector(selectCreateStatus)
-  const createError = useSelector(selectCreateError)
-  const lastCreated = useSelector(selectLastCreated)
-
-  const [form, setForm] = useState(EMPTY_FORM)
-
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((previous) => ({ ...previous, [name]: value }))
-  }
-
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-
-    const action = await dispatch(
-      createProduct({
-        name: form.name,
-        // The API expects numbers; inputs always yield strings.
-        price: Number(form.price),
-        stock: Number(form.stock),
-      }),
-    )
-
-    // Only clear the form and navigate when the thunk actually succeeded.
-    if (createProduct.fulfilled.match(action)) {
-      setForm(EMPTY_FORM)
-      navigate('/products')
-    }
-  }
+  const { form, handleChange, handleSubmit, isSubmitting, createStatus, createError, lastCreated } =
+    useProductForm({ onSuccess: () => navigate('/products') })
 
   return (
-    <section className="card" style={{ marginBottom: 24 }}>
+    <section className="card">
       <h2>Add product</h2>
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '2fr 1fr 1fr auto' }}>
@@ -76,13 +42,8 @@ function AddProductPage() {
               placeholder="40"
             />
           </label>
-          <button
-            type="submit"
-            className="primary"
-            style={{ alignSelf: 'end' }}
-            disabled={createStatus === 'loading'}
-          >
-            {createStatus === 'loading' ? 'Saving…' : 'Create'}
+          <button type="submit" className="primary" style={{ alignSelf: 'end' }} disabled={isSubmitting}>
+            {isSubmitting ? 'Saving…' : 'Create'}
           </button>
         </div>
       </form>

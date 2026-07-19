@@ -1,101 +1,37 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import ProductTable from '../components/ProductTable'
 import ProductFilters from '../components/ProductFilters'
 import Pagination from '../components/Pagination'
 import Spinner from '../components/Spinner'
 import ErrorMessage from '../components/ErrorMessage'
-import {
-  deleteProduct,
-  fetchProducts,
-  selectPagination,
-  selectProducts,
-  selectProductsError,
-  selectProductsStatus,
-} from '../features/products/productsSlice'
-import {
-  addItemToCart,
-  selectAddError,
-  selectLastAddedProductId,
-  selectPendingProductId,
-} from '../features/cart/cartSlice'
-import { DEMO_USER_ID } from '../utils/constants'
-import { EMPTY_FILTERS, filterProducts } from '../utils/filterProducts'
+import { useProducts } from '../hooks/useProducts'
+import { useCart } from '../hooks/useCart'
 
 /**
- * Reads products from the Redux store. The component performs no HTTP calls;
- * it only dispatches actions and renders state.
- *
- * Pagination and sorting are server-side (2G); the search/price filters (2F)
- * refine the page currently loaded.
+ * UI only. All data access and logic lives in useProducts / useCart.
  */
 function ProductListPage() {
-  const dispatch = useDispatch()
-  const products = useSelector(selectProducts)
-  const pagination = useSelector(selectPagination)
-  const status = useSelector(selectProductsStatus)
-  const error = useSelector(selectProductsError)
-  const addError = useSelector(selectAddError)
-  const pendingProductId = useSelector(selectPendingProductId)
-  const lastAddedProductId = useSelector(selectLastAddedProductId)
+  const {
+    products,
+    visibleProducts,
+    pagination,
+    isLoading,
+    error,
+    filters,
+    setFilter,
+    resetFilters,
+    goToPage,
+    changePageSize,
+    changeSort,
+    reload,
+    removeProduct,
+  } = useProducts()
 
-  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const { addToCart, addError, pendingProductId, lastAddedProductId } = useCart()
 
-  useEffect(() => {
-    if (status === 'idle') {
-      dispatch(fetchProducts())
-    }
-  }, [status, dispatch])
-
-  /**
-   * Recomputes only when the loaded page or the filters actually change, so
-   * unrelated re-renders (cart updates, spinner toggles) don't refilter.
-   */
-  const visibleProducts = useMemo(
-    () => filterProducts(products, filters),
-    [products, filters],
-  )
-
-  const handleFilterChange = useCallback((name, value) => {
-    setFilters((previous) => ({ ...previous, [name]: value }))
-  }, [])
-
-  const handleFilterReset = useCallback(() => setFilters(EMPTY_FILTERS), [])
-
-  const handlePageChange = useCallback(
-    (page) => dispatch(fetchProducts({ page })),
-    [dispatch],
-  )
-
-  // A larger page size can put the current offset past the end, so go back to page 0.
-  const handleSizeChange = useCallback(
-    (size) => dispatch(fetchProducts({ size, page: 0 })),
-    [dispatch],
-  )
-
-  const handleSortChange = useCallback(
-    (event) => {
-      const [sortBy, direction] = event.target.value.split(':')
-      dispatch(fetchProducts({ sortBy, direction, page: 0 }))
-    },
-    [dispatch],
-  )
-
-  const handleRetry = useCallback(() => dispatch(fetchProducts()), [dispatch])
-
-  const handleDelete = useCallback((id) => dispatch(deleteProduct(id)), [dispatch])
-
-  const handleAddToCart = useCallback(
-    (product) =>
-      dispatch(
-        addItemToCart({
-          userId: DEMO_USER_ID,
-          productId: product.id,
-          quantity: 1,
-        }),
-      ),
-    [dispatch],
-  )
+  const handleSortChange = (event) => {
+    const [sortBy, direction] = event.target.value.split(':')
+    changeSort(sortBy, direction)
+  }
 
   return (
     <section>
@@ -117,31 +53,31 @@ function ProductListPage() {
         </label>
       </div>
 
-      <ErrorMessage message={error} onRetry={handleRetry} />
+      <ErrorMessage message={error} onRetry={reload} />
       <ErrorMessage message={addError} />
       {lastAddedProductId && !addError && <p className="success-text">Added to cart.</p>}
 
-      {status === 'loading' && <Spinner label="Loading products…" />}
+      {isLoading && <Spinner label="Loading products…" />}
 
-      {status !== 'loading' && !error && (
+      {!isLoading && !error && (
         <>
           <ProductFilters
             filters={filters}
-            onChange={handleFilterChange}
-            onReset={handleFilterReset}
+            onChange={setFilter}
+            onReset={resetFilters}
             resultCount={visibleProducts.length}
             totalCount={products.length}
           />
           <ProductTable
             products={visibleProducts}
-            onDelete={handleDelete}
-            onAddToCart={handleAddToCart}
+            onDelete={removeProduct}
+            onAddToCart={addToCart}
             pendingProductId={pendingProductId}
           />
           <Pagination
             pagination={pagination}
-            onPageChange={handlePageChange}
-            onSizeChange={handleSizeChange}
+            onPageChange={goToPage}
+            onSizeChange={changePageSize}
           />
         </>
       )}

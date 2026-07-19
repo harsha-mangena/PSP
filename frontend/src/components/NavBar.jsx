@@ -1,12 +1,10 @@
 import { NavLink } from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import { selectCartItems } from '../features/cart/cartSlice'
+import { useCart } from '../hooks/useCart'
 
 const linkClass = ({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')
 
 function NavBar() {
-  const cartItems = useSelector(selectCartItems)
-  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+  const { itemCount } = useCart()
 
   return (
     <nav className="navbar">
