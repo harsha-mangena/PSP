@@ -13,21 +13,23 @@ import com.enterprise.cart.exception.InsufficientStockException;
 import com.enterprise.cart.producer.CartEventProducer;
 import com.enterprise.cart.repository.CartItemRepository;
 import com.enterprise.cart.repository.CartRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
- * Cart business logic. Product lookup and stock validation are wired in at 1H
- * via WebClient; this step establishes the persistence-side behaviour.
+ * Cart business logic: validates against product-service over WebClient,
+ * persists the item, and publishes a Kafka event.
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class CartService {
 
@@ -35,21 +37,23 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductClient productClient;
     private final CartEventProducer cartEventProducer;
+    private final Executor cartTaskExecutor;
+
+    public CartService(CartRepository cartRepository,
+                       CartItemRepository cartItemRepository,
+                       ProductClient productClient,
+                       CartEventProducer cartEventProducer,
+                       @Qualifier("cartTaskExecutor") Executor cartTaskExecutor) {
+        this.cartRepository = cartRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.productClient = productClient;
+        this.cartEventProducer = cartEventProducer;
+        this.cartTaskExecutor = cartTaskExecutor;
+    }
 
     @Transactional
     public CartResponse addToCart(AddToCartRequest request) {
-        // Call product-service over WebClient: the product must exist and have stock.
-        ProductDto product = productClient.getProductById(request.getProductId());
-
-        if (product.getStock() == null || product.getStock() < request.getQuantity()) {
-            log.warn("Rejecting add-to-cart: product={} requested={} available={}",
-                    request.getProductId(), request.getQuantity(), product.getStock());
-            throw new InsufficientStockException(
-                    request.getProductId(), request.getQuantity(), product.getStock());
-        }
-
-        log.info("Validated product={} name='{}' stock={} for requested qty={}",
-                product.getId(), product.getName(), product.getStock(), request.getQuantity());
+        ProductDto product = fetchAndValidateInParallel(request);
 
         Cart cart = cartRepository.findByUserId(request.getUserId())
                 .orElseGet(() -> {
@@ -92,6 +96,47 @@ public class CartService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new CartNotFoundException(userId));
         return buildCartResponse(cart);
+    }
+
+    /**
+     * Fetches the product and validates stock concurrently rather than in
+     * sequence. Both are independent remote calls, so the wall-clock cost is the
+     * slower of the two instead of their sum.
+     */
+    private ProductDto fetchAndValidateInParallel(AddToCartRequest request) {
+        long startedAt = System.currentTimeMillis();
+
+        CompletableFuture<ProductDto> productFuture = CompletableFuture.supplyAsync(
+                () -> productClient.getProductById(request.getProductId()), cartTaskExecutor);
+
+        CompletableFuture<Boolean> stockFuture = CompletableFuture.supplyAsync(
+                () -> productClient.hasSufficientStock(
+                        request.getProductId(), request.getQuantity()), cartTaskExecutor);
+
+        try {
+            // thenCombine joins both results once the slower of the two completes.
+            ProductDto product = productFuture.thenCombine(stockFuture, (fetched, sufficient) -> {
+                if (!Boolean.TRUE.equals(sufficient)) {
+                    throw new InsufficientStockException(
+                            request.getProductId(), request.getQuantity(), fetched.getStock());
+                }
+                return fetched;
+            }).join();
+
+            log.info("Parallel fetch+validate for product={} completed in {}ms",
+                    request.getProductId(), System.currentTimeMillis() - startedAt);
+            return product;
+
+        } catch (CompletionException e) {
+            // Unwrap so domain exceptions keep their intended HTTP status.
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                log.warn("Parallel fetch+validate failed for product={}: {}",
+                        request.getProductId(), cause.getMessage());
+                throw runtimeException;
+            }
+            throw e;
+        }
     }
 
     private CartResponse buildCartResponse(Cart cart) {
