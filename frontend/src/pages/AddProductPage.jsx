@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import ErrorMessage from '../components/ErrorMessage'
 import {
   createProduct,
   selectCreateError,
@@ -83,9 +84,9 @@ function AddProductPage() {
         </div>
       </form>
 
-      {createError && <p style={{ color: 'var(--danger)' }}>{createError}</p>}
+      <ErrorMessage message={createError} />
       {createStatus === 'succeeded' && lastCreated && (
-        <p style={{ color: 'var(--success)' }}>
+        <p className="success-text">
           Created &quot;{lastCreated.name}&quot; (id {lastCreated.id})
         </p>
       )}

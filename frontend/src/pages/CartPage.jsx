@@ -1,5 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import Spinner from '../components/Spinner'
+import ErrorMessage from '../components/ErrorMessage'
 import {
   fetchCart,
   selectCartError,
@@ -58,7 +60,13 @@ function CartPage() {
   return (
     <section>
       <h2>Cart {cartId ? <span className="muted">#{cartId}</span> : null}</h2>
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+
+      <ErrorMessage
+        message={error}
+        onRetry={() => dispatch(fetchCart(DEMO_USER_ID))}
+      />
+
+      {status === 'loading' && <Spinner label="Loading cart…" />}
 
       {status === 'succeeded' && rows.length === 0 && (
         <p className="muted">Your cart is empty.</p>

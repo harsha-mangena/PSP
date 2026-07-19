@@ -1,6 +1,8 @@
 import { useCallback, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ProductTable from '../components/ProductTable'
+import Spinner from '../components/Spinner'
+import ErrorMessage from '../components/ErrorMessage'
 import {
   deleteProduct,
   fetchProducts,
@@ -35,6 +37,8 @@ function ProductListPage() {
     }
   }, [status, dispatch])
 
+  const handleRetry = useCallback(() => dispatch(fetchProducts()), [dispatch])
+
   const handleDelete = useCallback((id) => dispatch(deleteProduct(id)), [dispatch])
 
   const handleAddToCart = useCallback(
@@ -52,18 +56,21 @@ function ProductListPage() {
   return (
     <section>
       <h2>Products</h2>
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
-      {addError && <p style={{ color: 'var(--danger)' }}>{addError}</p>}
-      {lastAddedProductId && !addError && (
-        <p style={{ color: 'var(--success)' }}>Added to cart.</p>
-      )}
 
-      <ProductTable
-        products={products}
-        onDelete={handleDelete}
-        onAddToCart={handleAddToCart}
-        pendingProductId={pendingProductId}
-      />
+      <ErrorMessage message={error} onRetry={handleRetry} />
+      <ErrorMessage message={addError} />
+      {lastAddedProductId && !addError && <p className="success-text">Added to cart.</p>}
+
+      {status === 'loading' && <Spinner label="Loading products…" />}
+
+      {status !== 'loading' && !error && (
+        <ProductTable
+          products={products}
+          onDelete={handleDelete}
+          onAddToCart={handleAddToCart}
+          pendingProductId={pendingProductId}
+        />
+      )}
     </section>
   )
 }
