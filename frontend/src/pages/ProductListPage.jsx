@@ -1,8 +1,10 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ProductTable from '../components/ProductTable'
+import ProductFilters from '../components/ProductFilters'
 import Spinner from '../components/Spinner'
 import ErrorMessage from '../components/ErrorMessage'
+import { EMPTY_FILTERS, filterProducts } from '../utils/filterProducts'
 import {
   deleteProduct,
   fetchProducts,
@@ -31,11 +33,28 @@ function ProductListPage() {
   const pendingProductId = useSelector(selectPendingProductId)
   const lastAddedProductId = useSelector(selectLastAddedProductId)
 
+  const [filters, setFilters] = useState(EMPTY_FILTERS)
+
   useEffect(() => {
     if (status === 'idle') {
       dispatch(fetchProducts())
     }
   }, [status, dispatch])
+
+  /**
+   * Recomputes only when the product list or the filters actually change, so
+   * unrelated re-renders (cart updates, spinner toggles) don't refilter.
+   */
+  const visibleProducts = useMemo(
+    () => filterProducts(products, filters),
+    [products, filters],
+  )
+
+  const handleFilterChange = useCallback((name, value) => {
+    setFilters((previous) => ({ ...previous, [name]: value }))
+  }, [])
+
+  const handleFilterReset = useCallback(() => setFilters(EMPTY_FILTERS), [])
 
   const handleRetry = useCallback(() => dispatch(fetchProducts()), [dispatch])
 
@@ -64,12 +83,21 @@ function ProductListPage() {
       {status === 'loading' && <Spinner label="Loading products…" />}
 
       {status !== 'loading' && !error && (
-        <ProductTable
-          products={products}
-          onDelete={handleDelete}
-          onAddToCart={handleAddToCart}
-          pendingProductId={pendingProductId}
-        />
+        <>
+          <ProductFilters
+            filters={filters}
+            onChange={handleFilterChange}
+            onReset={handleFilterReset}
+            resultCount={visibleProducts.length}
+            totalCount={products.length}
+          />
+          <ProductTable
+            products={visibleProducts}
+            onDelete={handleDelete}
+            onAddToCart={handleAddToCart}
+            pendingProductId={pendingProductId}
+          />
+        </>
       )}
     </section>
   )

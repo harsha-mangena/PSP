@@ -162,3 +162,45 @@ tbody tr:last-child td {
 .success-text {
   color: var(--success);
 }
+
+/* Filters */
+.filters {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.filters input[type='text'],
+.filters input[type='number'],
+.filters input:not([type='checkbox']) {
+  min-width: 130px;
+}
+
+.filters-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px !important;
+  padding-bottom: 8px;
+}
+
+.filters-checkbox input {
+  width: auto;
+}
+
+.filters-count {
+  margin: 0 0 8px auto;
+  font-size: 0.85rem;
+}
