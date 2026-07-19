@@ -262,3 +262,33 @@ tbody tr:last-child td {
   margin-left: auto;
   font-size: 0.85rem;
 }
+
+/* Navigation */
+.app-header {
+  margin-bottom: 16px;
+}
+
+.navbar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-link {
+  padding: 10px 16px;
+  text-decoration: none;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.nav-link:hover {
+  color: var(--text);
+}
+
+.nav-link.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}

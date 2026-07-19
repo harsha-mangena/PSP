@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import ErrorMessage from '../components/ErrorMessage'
 import {
   createProduct,
@@ -12,6 +13,7 @@ const EMPTY_FORM = { name: '', price: '', stock: '' }
 
 function AddProductPage() {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const createStatus = useSelector(selectCreateStatus)
   const createError = useSelector(selectCreateError)
   const lastCreated = useSelector(selectLastCreated)
@@ -35,9 +37,10 @@ function AddProductPage() {
       }),
     )
 
-    // Only clear the form when the thunk actually succeeded.
+    // Only clear the form and navigate when the thunk actually succeeded.
     if (createProduct.fulfilled.match(action)) {
       setForm(EMPTY_FORM)
+      navigate('/products')
     }
   }
 

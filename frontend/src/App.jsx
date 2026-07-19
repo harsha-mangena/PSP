@@ -1,21 +1,35 @@
-import AddProductPage from './pages/AddProductPage'
-import CartPage from './pages/CartPage'
-import ProductListPage from './pages/ProductListPage'
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import NavBar from './components/NavBar'
+import AppRoutes from './routes/AppRoutes'
+import { fetchCart } from './features/cart/cartSlice'
+import { DEMO_USER_ID } from './utils/constants'
 
 /**
- * Application shell. Real routing arrives at 2H; until then all three screens
- * render on one page so the cart flow can be exercised end to end.
+ * Application shell: persistent header and navigation around the routed view.
  */
 function App() {
+  const dispatch = useDispatch()
+
+  // Load the cart once at startup so the nav badge is correct on any route.
+  useEffect(() => {
+    dispatch(fetchCart(DEMO_USER_ID))
+  }, [dispatch])
+
   return (
     <div className="app-shell">
-      <h1>Enterprise Store</h1>
-      <p className="muted">React 18 + Redux Toolkit frontend for the Product / Cart services.</p>
+      <header className="app-header">
+        <h1>Enterprise Store</h1>
+        <p className="muted">
+          React 18 + Redux Toolkit frontend for the Product / Cart microservices.
+        </p>
+      </header>
 
-      <AddProductPage />
-      <ProductListPage />
-      <hr style={{ margin: '32px 0', border: 0, borderTop: '1px solid var(--border)' }} />
-      <CartPage />
+      <NavBar />
+
+      <main>
+        <AppRoutes />
+      </main>
     </div>
   )
 }
