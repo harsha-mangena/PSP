@@ -487,3 +487,15 @@ tbody tr:last-child td {
   padding-bottom: 6px;
   font-size: 0.85rem;
 }
+
+.link-button {
+  display: block;
+  margin: 6px auto 0;
+  padding: 2px 6px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  font-size: 0.8rem;
+  cursor: pointer;
+}

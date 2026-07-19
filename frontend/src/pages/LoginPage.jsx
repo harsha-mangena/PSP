@@ -1,12 +1,14 @@
 import { useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import ErrorMessage from '../components/ErrorMessage'
-import { login } from '../features/auth/authSlice'
+import { clearError, login } from '../features/auth/authSlice'
 import { useAuth } from '../hooks/useAuth'
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const dispatch = useDispatch()
   const { isLoggedIn, error, isSigningIn, signIn } = useAuth()
 
   const [form, setForm] = useState({ username: '', password: '' })
@@ -21,11 +23,31 @@ function LoginPage() {
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((previous) => ({ ...previous, [name]: value }))
+    // Clear a previous failure as soon as the user starts correcting it,
+    // otherwise the banner looks like it is rejecting what is on screen now.
+    if (error) dispatch(clearError())
+  }
+
+  const fillDemoCredentials = () => {
+    setForm({ username: 'root', password: 'root1234' })
+    if (error) dispatch(clearError())
   }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    const action = await signIn(form)
+
+    // Read straight from the form rather than trusting React state: browser
+    // autofill writes to the DOM without always firing onChange, which would
+    // otherwise submit stale or empty values.
+    const data = new FormData(event.currentTarget)
+    const credentials = {
+      // Whitespace here is always an input accident (usually a copy-paste),
+      // never intentional, and silently fails an exact-match check.
+      username: String(data.get('username') ?? form.username).trim(),
+      password: String(data.get('password') ?? form.password).trim(),
+    }
+
+    const action = await signIn(credentials)
     if (login.fulfilled.match(action)) {
       navigate(from, { replace: true })
     }
@@ -69,6 +91,9 @@ function LoginPage() {
 
         <p className="muted login-hint">
           Demo credentials: <code>root</code> / <code>root1234</code>
+          <button type="button" className="link-button" onClick={fillDemoCredentials}>
+            Fill for me
+          </button>
         </p>
       </section>
     </div>
