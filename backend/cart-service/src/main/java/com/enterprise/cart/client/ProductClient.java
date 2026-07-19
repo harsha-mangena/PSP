@@ -1,6 +1,7 @@
 package com.enterprise.cart.client;
 
 import com.enterprise.cart.dto.ProductDto;
+import com.enterprise.cart.exception.InsufficientStockException;
 import com.enterprise.cart.exception.ProductUnavailableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,38 @@ public class ProductClient {
                     .block(TIMEOUT);
         } catch (WebClientRequestException e) {
             log.error("product-service unreachable for product {}: {}", productId, e.getMessage());
+            throw new ProductUnavailableException(
+                    "product-service is unreachable: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Decrements stock at checkout. product-service performs the check and the
+     * write in one transaction, so it is the authority on whether this succeeds.
+     */
+    public ProductDto reduceStock(Integer productId, Integer quantity) {
+        log.info("WebClient POST /api/products/{}/reduce-stock?quantity={}", productId, quantity);
+        try {
+            return productServiceWebClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/products/{id}/reduce-stock")
+                            .queryParam("quantity", quantity)
+                            .build(productId))
+                    .retrieve()
+                    .onStatus(status -> status.value() == 409,
+                            response -> Mono.error(new InsufficientStockException(
+                                    productId, quantity, null)))
+                    .onStatus(HttpStatusCode::is4xxClientError,
+                            response -> Mono.error(new ProductUnavailableException(
+                                    "Product not found: " + productId)))
+                    .onStatus(HttpStatusCode::is5xxServerError,
+                            response -> Mono.error(new ProductUnavailableException(
+                                    "product-service error reducing stock for " + productId)))
+                    .bodyToMono(ProductDto.class)
+                    .block(TIMEOUT);
+        } catch (WebClientRequestException e) {
+            log.error("product-service unreachable during stock reduction for {}: {}",
+                    productId, e.getMessage());
             throw new ProductUnavailableException(
                     "product-service is unreachable: " + e.getMessage());
         }

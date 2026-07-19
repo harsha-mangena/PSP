@@ -8,6 +8,7 @@ import com.enterprise.cart.dto.ProductDto;
 import com.enterprise.cart.entity.Cart;
 import com.enterprise.cart.entity.CartItem;
 import com.enterprise.cart.event.CartEvent;
+import com.enterprise.cart.exception.CartItemNotFoundException;
 import com.enterprise.cart.exception.InsufficientStockException;
 import com.enterprise.cart.producer.CartEventProducer;
 import com.enterprise.cart.repository.CartItemRepository;
@@ -87,6 +88,54 @@ public class CartService {
                 .occurredAt(Instant.now())
                 .build());
 
+        return buildCartResponse(cart);
+    }
+
+    /**
+     * Removes a single line from the cart.
+     */
+    @Transactional
+    public CartResponse removeItem(String userId, Integer itemId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new CartItemNotFoundException(itemId));
+
+        CartItem item = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new CartItemNotFoundException(itemId));
+
+        // Guard against removing an item that belongs to somebody else's cart.
+        if (!item.getCartId().equals(cart.getId())) {
+            throw new CartItemNotFoundException(itemId);
+        }
+
+        cartItemRepository.delete(item);
+        log.info("Removed cart item id={} from cart={}", itemId, cart.getId());
+        return buildCartResponse(cart);
+    }
+
+    /**
+     * Sets an absolute quantity for a line, re-validating against live stock.
+     */
+    @Transactional
+    public CartResponse updateItemQuantity(String userId, Integer itemId, Integer quantity) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new CartItemNotFoundException(itemId));
+
+        CartItem item = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new CartItemNotFoundException(itemId));
+
+        if (!item.getCartId().equals(cart.getId())) {
+            throw new CartItemNotFoundException(itemId);
+        }
+
+        ProductDto product = productClient.getProductById(item.getProductId());
+        if (product.getStock() == null || product.getStock() < quantity) {
+            throw new InsufficientStockException(
+                    item.getProductId(), quantity, product.getStock());
+        }
+
+        item.setQuantity(quantity);
+        cartItemRepository.save(item);
+        log.info("Updated cart item id={} to quantity={}", itemId, quantity);
         return buildCartResponse(cart);
     }
 

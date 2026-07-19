@@ -4,6 +4,7 @@ import com.enterprise.product.dto.PagedResponse;
 import com.enterprise.product.dto.ProductRequest;
 import com.enterprise.product.dto.ProductResponse;
 import com.enterprise.product.entity.Product;
+import com.enterprise.product.exception.InsufficientStockException;
 import com.enterprise.product.exception.ProductNotFoundException;
 import com.enterprise.product.mapper.ProductMapper;
 import com.enterprise.product.repository.ProductRepository;
@@ -154,6 +155,26 @@ public class ProductService {
         log.info("Native query low stock threshold={} limit={} returned {} rows",
                 threshold, limit, results.size());
         return results;
+    }
+
+    /**
+     * Decrements stock at checkout. Guarded so concurrent orders cannot drive
+     * stock negative; the check and the write share one transaction.
+     */
+    @Transactional
+    public ProductResponse reduceStock(Integer id, Integer quantity) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+
+        if (product.getStock() < quantity) {
+            throw new InsufficientStockException(id, quantity, product.getStock());
+        }
+
+        product.setStock(product.getStock() - quantity);
+        Product saved = productRepository.save(product);
+        log.info("Reduced stock for product id={} by {} -> {} remaining",
+                id, quantity, saved.getStock());
+        return ProductMapper.toResponse(saved);
     }
 
     /**

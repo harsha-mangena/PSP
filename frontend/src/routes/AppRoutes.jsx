@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import ProductListPage from '../pages/ProductListPage'
 import AddProductPage from '../pages/AddProductPage'
 import CartPage from '../pages/CartPage'
+import OrdersPage from '../pages/OrdersPage'
 import NotFoundPage from '../pages/NotFoundPage'
 
 /**
@@ -14,6 +15,7 @@ function AppRoutes() {
       <Route path="/products" element={<ProductListPage />} />
       <Route path="/add-product" element={<AddProductPage />} />
       <Route path="/cart" element={<CartPage />} />
+      <Route path="/orders" element={<OrdersPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

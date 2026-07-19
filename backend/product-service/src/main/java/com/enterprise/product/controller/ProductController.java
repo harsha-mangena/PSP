@@ -114,6 +114,16 @@ public class ProductController {
     }
 
     /**
+     * Called by cart-service during checkout to decrement stock.
+     */
+    @PostMapping("/{id}/reduce-stock")
+    public ResponseEntity<ProductResponse> reduceStock(@PathVariable Integer id,
+                                                       @RequestParam Integer quantity) {
+        log.info("POST /api/products/{}/reduce-stock quantity={}", id, quantity);
+        return ResponseEntity.ok(productService.reduceStock(id, quantity));
+    }
+
+    /**
      * Consumed by cart-service during add-to-cart validation.
      */
     @GetMapping("/{id}/stock-check")

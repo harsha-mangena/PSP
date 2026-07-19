@@ -292,3 +292,141 @@ tbody tr:last-child td {
   border-bottom-color: var(--accent);
   font-weight: 600;
 }
+
+/* Quantity stepper */
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.qty-stepper button {
+  padding: 4px 10px;
+  min-width: 32px;
+  line-height: 1.2;
+}
+
+.qty-value {
+  min-width: 32px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cart summary + pay */
+.cart-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.cart-total {
+  display: block;
+  font-size: 1.25rem;
+  margin-top: 2px;
+}
+
+.pay-button {
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.checkout-note {
+  font-size: 0.82rem;
+  margin-top: 10px;
+}
+
+/* Receipt */
+.receipt {
+  border: 1px solid var(--success);
+  background: #eaf6ee;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+
+.receipt-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.receipt-header button {
+  border: none;
+  background: transparent;
+  padding: 2px 6px;
+}
+
+.receipt-number {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.receipt-table {
+  border: none;
+  background: transparent;
+  margin: 12px 0;
+}
+
+.receipt-table td {
+  border-bottom: none;
+  padding: 3px 0;
+}
+
+.receipt-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-total td {
+  border-top: 1px solid var(--success);
+  padding-top: 8px;
+  font-weight: 600;
+}
+
+/* Orders */
+.order-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.order-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.order-card-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-meta {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #eaf6ee;
+  color: var(--success);
+  border: 1px solid var(--success);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}

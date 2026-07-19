@@ -25,6 +25,28 @@ export const addItemToCart = createAsyncThunk(
   },
 )
 
+export const updateItemQuantity = createAsyncThunk(
+  'cart/updateQuantity',
+  async ({ userId, itemId, quantity }, { rejectWithValue }) => {
+    try {
+      return await cartService.updateQuantity({ userId, itemId, quantity })
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error))
+    }
+  },
+)
+
+export const removeCartItem = createAsyncThunk(
+  'cart/removeItem',
+  async ({ userId, itemId }, { rejectWithValue }) => {
+    try {
+      return await cartService.removeItem({ userId, itemId })
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error))
+    }
+  },
+)
+
 const initialState = {
   cartId: null,
   items: [],
@@ -35,6 +57,9 @@ const initialState = {
   // Product id currently being added, so only that row's button shows a pending state.
   pendingProductId: null,
   lastAddedProductId: null,
+  // Cart item id currently being changed or removed.
+  pendingItemId: null,
+  mutateError: null,
 }
 
 const cartSlice = createSlice({
@@ -81,6 +106,34 @@ const cartSlice = createSlice({
         state.addError = action.payload ?? 'Failed to add item to cart'
         state.pendingProductId = null
       })
+
+      // Quantity change and removal both return the updated cart, so they share
+      // the same success handling.
+      .addMatcher(
+        (action) =>
+          [updateItemQuantity.pending.type, removeCartItem.pending.type].includes(action.type),
+        (state, action) => {
+          state.pendingItemId = action.meta.arg.itemId
+          state.mutateError = null
+        },
+      )
+      .addMatcher(
+        (action) =>
+          [updateItemQuantity.fulfilled.type, removeCartItem.fulfilled.type].includes(action.type),
+        (state, action) => {
+          state.cartId = action.payload.cartId
+          state.items = action.payload.items ?? []
+          state.pendingItemId = null
+        },
+      )
+      .addMatcher(
+        (action) =>
+          [updateItemQuantity.rejected.type, removeCartItem.rejected.type].includes(action.type),
+        (state, action) => {
+          state.mutateError = action.payload ?? 'Failed to update cart'
+          state.pendingItemId = null
+        },
+      )
   },
 })
 
@@ -94,5 +147,7 @@ export const selectAddStatus = (state) => state.cart.addStatus
 export const selectAddError = (state) => state.cart.addError
 export const selectPendingProductId = (state) => state.cart.pendingProductId
 export const selectLastAddedProductId = (state) => state.cart.lastAddedProductId
+export const selectPendingItemId = (state) => state.cart.pendingItemId
+export const selectMutateError = (state) => state.cart.mutateError
 
 export default cartSlice.reducer

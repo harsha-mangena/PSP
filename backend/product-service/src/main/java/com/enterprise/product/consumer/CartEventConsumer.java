@@ -16,7 +16,8 @@ public class CartEventConsumer {
 
     @KafkaListener(
             topics = "${app.kafka.cart-events-topic}",
-            groupId = "${spring.kafka.consumer.group-id}")
+            groupId = "${spring.kafka.consumer.group-id}",
+            containerFactory = "cartEventListenerFactory")
     public void consume(ConsumerRecord<String, CartEvent> record) {
         CartEvent event = record.value();
 

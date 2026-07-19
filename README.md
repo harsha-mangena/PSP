@@ -14,18 +14,19 @@ Browser (React 18 + Redux Toolkit, :3000)
         └──────────────► cart-service (:8082) ────► SQL Server (cartdb)
                                  │
                                  ▼
-                          Kafka topic: cart-events
+                    Kafka topics: cart-events, order-events
                                  │
                                  ▼
-                  product-service consumer (logs events)
+                  product-service consumers (log events)
 ```
 
 ### product-service (port 8081)
-Product CRUD, pagination/sorting, native queries, and the Kafka **consumer**.
+Product CRUD, pagination/sorting, native queries, stock reduction, and the
+Kafka **consumers** (cart events and order events).
 
 ### cart-service (port 8082)
-Cart operations, calls product-service over **WebClient**, and the Kafka
-**producer**. `RestTemplate` is not used anywhere in this project.
+Cart operations, mock checkout / order history, calls product-service over
+**WebClient**, and the Kafka **producers**. `RestTemplate` is not used anywhere in this project.
 
 ## Layout
 
@@ -109,6 +110,7 @@ npm run dev        # http://localhost:3000
 | GET | `/api/products/above-price?minPrice=` | Native SQL query |
 | GET | `/api/products/low-stock?threshold=&limit=` | Native query (SQL Server `TOP`) |
 | GET | `/api/products/{id}/stock-check?quantity=` | Stock validation |
+| POST | `/api/products/{id}/reduce-stock?quantity=` | Decrement stock at checkout |
 
 ### cart-service (8082)
 
@@ -116,6 +118,10 @@ npm run dev        # http://localhost:3000
 |---|---|---|
 | POST | `/api/cart/items` | Add to cart (validates via WebClient, publishes to Kafka) |
 | GET | `/api/cart/{userId}` | Fetch cart (empty cart returns 200, not 404) |
+| PUT | `/api/cart/{userId}/items/{itemId}` | Set line quantity (re-validates stock) |
+| DELETE | `/api/cart/{userId}/items/{itemId}` | Remove a line |
+| POST | `/api/orders/checkout` | Mock payment — place an order |
+| GET | `/api/orders/{userId}` | Order history |
 
 ## Design notes
 
@@ -132,6 +138,17 @@ partition. Publish failures are logged but do not fail the request — the cart
 write has already committed. The consumer wraps `JsonDeserializer` in
 `ErrorHandlingDeserializer` so a poison message cannot wedge it.
 
+**Checkout is a mock payment.** No gateway is called, but everything around it
+is real: `OrderService.checkout` decrements stock in product-service over
+WebClient, persists the order, clears the cart, and publishes to `order-events`.
+Stock is reduced *before* the order is written, so if any line is short the
+whole transaction rolls back and no order exists. Product name and price are
+snapshotted onto the order line, so later catalogue edits never rewrite history.
+
+Orders live in cart-service rather than a separate order-service — a third
+service would mean another database, port and deployment for what is a mock
+checkout.
+
 **Error handling.** Each service has a `@RestControllerAdvice` producing one JSON
 shape: `{timestamp, status, error, message, path, fieldErrors}`. Stack traces are
 logged, never returned.
@@ -141,7 +158,7 @@ logged, never returned.
 | Layer | Responsibility |
 |---|---|
 | `components/`, `pages/` | UI only — no store access, no service imports |
-| `hooks/` | Logic (`useProducts`, `useCart`, `useProductForm`) |
+| `hooks/` | Logic (`useProducts`, `useCart`, `useOrders`, `useProductForm`) |
 | `features/` | Redux slices + thunks |
 | `services/` | API — the only place importing axios |
 
@@ -160,6 +177,7 @@ node scripts/verify-filters.mjs     # filtering is client-side (0 API calls)
 node scripts/verify-pagination.mjs  # pages are disjoint and backend-driven
 node scripts/verify-states.mjs      # spinner + error banner
 node scripts/verify-cart.mjs        # add-to-cart through to Kafka
+node scripts/verify-orders.mjs      # quantity, remove, pay, order history, stock
 ```
 
 They require Google Chrome at the standard macOS path.

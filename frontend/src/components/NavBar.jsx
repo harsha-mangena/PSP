@@ -17,6 +17,9 @@ function NavBar() {
       <NavLink to="/cart" className={linkClass}>
         Cart{itemCount > 0 ? ` (${itemCount})` : ''}
       </NavLink>
+      <NavLink to="/orders" className={linkClass}>
+        Orders
+      </NavLink>
     </nav>
   )
 }

@@ -9,7 +9,11 @@ import {
   selectCartItems,
   selectCartStatus,
   selectLastAddedProductId,
+  selectMutateError,
+  selectPendingItemId,
   selectPendingProductId,
+  updateItemQuantity,
+  removeCartItem,
 } from '../features/cart/cartSlice'
 import { fetchProductsByIds, selectProductsById } from '../features/products/productsSlice'
 import { DEMO_USER_ID } from '../utils/constants'
@@ -27,6 +31,8 @@ export function useCart({ loadOnMount = false } = {}) {
   const addError = useSelector(selectAddError)
   const pendingProductId = useSelector(selectPendingProductId)
   const lastAddedProductId = useSelector(selectLastAddedProductId)
+  const pendingItemId = useSelector(selectPendingItemId)
+  const mutateError = useSelector(selectMutateError)
   const productsById = useSelector(selectProductsById)
 
   useEffect(() => {
@@ -81,6 +87,17 @@ export function useCart({ loadOnMount = false } = {}) {
 
   const reload = useCallback(() => dispatch(fetchCart(DEMO_USER_ID)), [dispatch])
 
+  const setQuantity = useCallback(
+    (itemId, quantity) =>
+      dispatch(updateItemQuantity({ userId: DEMO_USER_ID, itemId, quantity })),
+    [dispatch],
+  )
+
+  const removeItem = useCallback(
+    (itemId) => dispatch(removeCartItem({ userId: DEMO_USER_ID, itemId })),
+    [dispatch],
+  )
+
   return {
     cartId,
     rows,
@@ -90,9 +107,13 @@ export function useCart({ loadOnMount = false } = {}) {
     isLoading: status === 'loading',
     error,
     addError,
+    mutateError,
     pendingProductId,
+    pendingItemId,
     lastAddedProductId,
     addToCart,
+    setQuantity,
+    removeItem,
     reload,
   }
 }
