@@ -1,9 +1,8 @@
 package com.enterprise.cart.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.CONFLICT)
+/**
+ * Status mapping lives in GlobalExceptionHandler.
+ */
 public class InsufficientStockException extends RuntimeException {
 
     public InsufficientStockException(Integer productId, Integer requested, Integer available) {

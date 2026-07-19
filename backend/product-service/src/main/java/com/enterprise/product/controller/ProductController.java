@@ -4,6 +4,7 @@ import com.enterprise.product.dto.PagedResponse;
 import com.enterprise.product.dto.ProductRequest;
 import com.enterprise.product.dto.ProductResponse;
 import com.enterprise.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest request) {
         log.info("POST /api/products name={}", request.getName());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productService.createProduct(request));
@@ -55,7 +56,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable Integer id,
-                                                         @RequestBody ProductRequest request) {
+                                                         @Valid @RequestBody ProductRequest request) {
         log.info("PUT /api/products/{}", id);
         return ResponseEntity.ok(productService.updateProduct(id, request));
     }

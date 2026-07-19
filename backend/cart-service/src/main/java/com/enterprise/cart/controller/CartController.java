@@ -3,6 +3,7 @@ package com.enterprise.cart.controller;
 import com.enterprise.cart.dto.AddToCartRequest;
 import com.enterprise.cart.dto.CartResponse;
 import com.enterprise.cart.service.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/items")
-    public ResponseEntity<CartResponse> addToCart(@RequestBody AddToCartRequest request) {
+    public ResponseEntity<CartResponse> addToCart(@Valid @RequestBody AddToCartRequest request) {
         log.info("POST /api/cart/items user={} product={} qty={}",
                 request.getUserId(), request.getProductId(), request.getQuantity());
         return ResponseEntity.status(HttpStatus.CREATED).body(cartService.addToCart(request));
