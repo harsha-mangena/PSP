@@ -1,11 +1,14 @@
 package com.enterprise.cart.service;
 
+import com.enterprise.cart.client.ProductClient;
 import com.enterprise.cart.dto.AddToCartRequest;
 import com.enterprise.cart.dto.CartItemResponse;
 import com.enterprise.cart.dto.CartResponse;
+import com.enterprise.cart.dto.ProductDto;
 import com.enterprise.cart.entity.Cart;
 import com.enterprise.cart.entity.CartItem;
 import com.enterprise.cart.exception.CartNotFoundException;
+import com.enterprise.cart.exception.InsufficientStockException;
 import com.enterprise.cart.repository.CartItemRepository;
 import com.enterprise.cart.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +30,23 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final ProductClient productClient;
 
     @Transactional
     public CartResponse addToCart(AddToCartRequest request) {
+        // Call product-service over WebClient: the product must exist and have stock.
+        ProductDto product = productClient.getProductById(request.getProductId());
+
+        if (product.getStock() == null || product.getStock() < request.getQuantity()) {
+            log.warn("Rejecting add-to-cart: product={} requested={} available={}",
+                    request.getProductId(), request.getQuantity(), product.getStock());
+            throw new InsufficientStockException(
+                    request.getProductId(), request.getQuantity(), product.getStock());
+        }
+
+        log.info("Validated product={} name='{}' stock={} for requested qty={}",
+                product.getId(), product.getName(), product.getStock(), request.getQuantity());
+
         Cart cart = cartRepository.findByUserId(request.getUserId())
                 .orElseGet(() -> {
                     Cart created = cartRepository.save(
