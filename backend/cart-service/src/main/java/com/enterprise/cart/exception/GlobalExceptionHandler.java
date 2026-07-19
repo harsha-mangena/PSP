@@ -22,13 +22,6 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(CartNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleCartNotFound(CartNotFoundException ex,
-                                                            HttpServletRequest request) {
-        log.warn("404 on {}: {}", request.getRequestURI(), ex.getMessage());
-        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request, null);
-    }
-
     /**
      * The product does not exist, or product-service could not be reached.
      */

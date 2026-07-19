@@ -7,7 +7,6 @@ import com.enterprise.cart.dto.CartResponse;
 import com.enterprise.cart.dto.ProductDto;
 import com.enterprise.cart.entity.Cart;
 import com.enterprise.cart.entity.CartItem;
-import com.enterprise.cart.exception.CartNotFoundException;
 import com.enterprise.cart.event.CartEvent;
 import com.enterprise.cart.exception.InsufficientStockException;
 import com.enterprise.cart.producer.CartEventProducer;
@@ -91,11 +90,22 @@ public class CartService {
         return buildCartResponse(cart);
     }
 
+    /**
+     * A user who has never added anything has an empty cart, not a missing one,
+     * so this returns an empty representation rather than a 404.
+     */
     @Transactional(readOnly = true)
     public CartResponse getCartByUserId(String userId) {
-        Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new CartNotFoundException(userId));
-        return buildCartResponse(cart);
+        return cartRepository.findByUserId(userId)
+                .map(this::buildCartResponse)
+                .orElseGet(() -> {
+                    log.info("No cart yet for user={}, returning empty cart", userId);
+                    return CartResponse.builder()
+                            .cartId(null)
+                            .userId(userId)
+                            .items(List.of())
+                            .build();
+                });
     }
 
     /**

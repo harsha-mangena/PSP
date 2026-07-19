@@ -1,10 +1,10 @@
 import AddProductPage from './pages/AddProductPage'
+import CartPage from './pages/CartPage'
 import ProductListPage from './pages/ProductListPage'
 
 /**
- * Application shell. Real routing arrives at 2H. The pages no longer need a
- * refresh signal between them: both read from the Redux store, so a successful
- * create updates the list automatically.
+ * Application shell. Real routing arrives at 2H; until then all three screens
+ * render on one page so the cart flow can be exercised end to end.
  */
 function App() {
   return (
@@ -14,6 +14,8 @@ function App() {
 
       <AddProductPage />
       <ProductListPage />
+      <hr style={{ margin: '32px 0', border: 0, borderTop: '1px solid var(--border)' }} />
+      <CartPage />
     </div>
   )
 }
