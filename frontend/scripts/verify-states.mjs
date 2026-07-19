@@ -3,8 +3,11 @@
  * error banner + Retry appear when the backend request fails.
  */
 import puppeteer from 'puppeteer-core'
+import { seedSession, fetchSession } from './lib/session.mjs'
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+
+const session = await fetchSession()
 
 const browser = await puppeteer.launch({
   executablePath: CHROME,
@@ -14,6 +17,7 @@ const browser = await puppeteer.launch({
 
 // --- 1. Spinner: delay the products response and look for it mid-flight.
 const slowPage = await browser.newPage()
+ await seedSession(slowPage, session)
 await slowPage.setRequestInterception(true)
 slowPage.on('request', async (req) => {
   if (req.url().includes('/api/products')) {
@@ -39,6 +43,7 @@ await slowPage.close()
 
 // --- 2. Error banner: fail the products request outright.
 const failPage = await browser.newPage()
+ await seedSession(failPage, session)
 await failPage.setRequestInterception(true)
 failPage.on('request', (req) => {
   if (req.url().includes('/api/products')) return req.abort('failed')

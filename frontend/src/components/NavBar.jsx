@@ -1,10 +1,18 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useCart } from '../hooks/useCart'
+import { useAuth } from '../hooks/useAuth'
 
 const linkClass = ({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')
 
 function NavBar() {
   const { itemCount } = useCart()
+  const { username, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <nav className="navbar">
@@ -20,6 +28,15 @@ function NavBar() {
       <NavLink to="/orders" className={linkClass}>
         Orders
       </NavLink>
+
+      <div className="navbar-user">
+        <span className="muted">
+          Signed in as <strong>{username}</strong>
+        </span>
+        <button type="button" onClick={handleSignOut}>
+          Sign out
+        </button>
+      </div>
     </nav>
   )
 }

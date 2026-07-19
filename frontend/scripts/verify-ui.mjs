@@ -5,11 +5,14 @@
  * Usage: node scripts/verify-ui.mjs [url] [--shot out.png]
  */
 import puppeteer from 'puppeteer-core'
+import { seedSession, fetchSession } from './lib/session.mjs'
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const url = process.argv[2] ?? 'http://localhost:3000'
 const shotIndex = process.argv.indexOf('--shot')
 const shot = shotIndex > -1 ? process.argv[shotIndex + 1] : null
+
+const session = await fetchSession()
 
 const browser = await puppeteer.launch({
   executablePath: CHROME,
@@ -18,6 +21,7 @@ const browser = await puppeteer.launch({
 })
 
 const page = await browser.newPage()
+ await seedSession(page, session)
 const consoleErrors = []
 const pageErrors = []
 

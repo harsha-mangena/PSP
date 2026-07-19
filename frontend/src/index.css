@@ -430,3 +430,60 @@ tbody tr:last-child td {
   font-weight: 600;
   letter-spacing: 0.04em;
 }
+
+/* Login */
+.login-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-sub {
+  margin: 0 0 20px;
+  font-size: 0.9rem;
+}
+
+.login-field {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+}
+
+.login-field span {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.login-submit {
+  width: 100%;
+  padding: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.login-hint {
+  margin: 16px 0 0;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.login-hint code {
+  background: #eef1f5;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Nav user block */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  padding-bottom: 6px;
+  font-size: 0.85rem;
+}

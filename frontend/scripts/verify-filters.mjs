@@ -3,8 +3,11 @@
  * without any additional network requests (filtering is client-side/useMemo).
  */
 import puppeteer from 'puppeteer-core'
+import { seedSession, fetchSession } from './lib/session.mjs'
 
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+
+const session = await fetchSession()
 
 const browser = await puppeteer.launch({
   executablePath: CHROME,
@@ -12,6 +15,7 @@ const browser = await puppeteer.launch({
   args: ['--no-sandbox'],
 })
 const page = await browser.newPage()
+ await seedSession(page, session)
 const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))

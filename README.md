@@ -93,6 +93,9 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
+Sign in with **`root` / `root1234`** (configurable via `app.auth.username` /
+`app.auth.password`, or the `APP_AUTH_USERNAME` / `APP_AUTH_PASSWORD` env vars).
+
 ## API
 
 ### product-service (8081)
@@ -122,6 +125,9 @@ npm run dev        # http://localhost:3000
 | DELETE | `/api/cart/{userId}/items/{itemId}` | Remove a line |
 | POST | `/api/orders/checkout` | Mock payment — place an order |
 | GET | `/api/orders/{userId}` | Order history |
+| POST | `/api/auth/login` | Sign in, returns a session token |
+| GET | `/api/auth/me` | Validate a token |
+| POST | `/api/auth/logout` | Revoke a token |
 
 ## Design notes
 
@@ -149,6 +155,18 @@ Orders live in cart-service rather than a separate order-service — a third
 service would mean another database, port and deployment for what is a mock
 checkout.
 
+**Login is a UI gate, not security.** `AuthService` validates credentials from
+configuration, issues an in-memory token, and the frontend guards its routes
+with it. But there is no filter or Spring Security on the request path, so the
+REST APIs remain callable without a token — `curl localhost:8081/api/products`
+still works. Making this real means adding Spring Security to both services and
+validating the token on every request. Tokens are held in memory, so restarting
+cart-service ends all sessions; the frontend detects this via `/api/auth/me` on
+boot and signs out cleanly.
+
+Cart and orders are scoped to the signed-in username, so signing in as a
+different user yields a different cart and order history.
+
 **Error handling.** Each service has a `@RestControllerAdvice` producing one JSON
 shape: `{timestamp, status, error, message, path, fieldErrors}`. Stack traces are
 logged, never returned.
@@ -158,7 +176,7 @@ logged, never returned.
 | Layer | Responsibility |
 |---|---|
 | `components/`, `pages/` | UI only — no store access, no service imports |
-| `hooks/` | Logic (`useProducts`, `useCart`, `useOrders`, `useProductForm`) |
+| `hooks/` | Logic (`useAuth`, `useProducts`, `useCart`, `useOrders`, `useProductForm`) |
 | `features/` | Redux slices + thunks |
 | `services/` | API — the only place importing axios |
 
@@ -171,6 +189,7 @@ The frontend includes headless-Chrome checks used to verify each step:
 
 ```bash
 cd frontend
+node scripts/verify-login.mjs       # route guard, bad credentials, reload, sign-out
 node scripts/verify-ui.mjs          # renders backend data, no console errors
 node scripts/verify-routing.mjs     # routes, deep links, no full reloads
 node scripts/verify-filters.mjs     # filtering is client-side (0 API calls)

@@ -16,7 +16,7 @@ import {
   removeCartItem,
 } from '../features/cart/cartSlice'
 import { fetchProductsByIds, selectProductsById } from '../features/products/productsSlice'
-import { DEMO_USER_ID } from '../utils/constants'
+import { selectUsername } from '../features/auth/authSlice'
 
 /**
  * Cart state plus the product-name join and money maths. Components consume
@@ -34,12 +34,14 @@ export function useCart({ loadOnMount = false } = {}) {
   const pendingItemId = useSelector(selectPendingItemId)
   const mutateError = useSelector(selectMutateError)
   const productsById = useSelector(selectProductsById)
+  // The cart is scoped to whoever is signed in.
+  const userId = useSelector(selectUsername)
 
   useEffect(() => {
-    if (loadOnMount) {
-      dispatch(fetchCart(DEMO_USER_ID))
+    if (loadOnMount && userId) {
+      dispatch(fetchCart(userId))
     }
-  }, [loadOnMount, dispatch])
+  }, [loadOnMount, userId, dispatch])
 
   useEffect(() => {
     // Cart items may reference products that are not on the loaded page.
@@ -77,25 +79,25 @@ export function useCart({ loadOnMount = false } = {}) {
     (product, quantity = 1) =>
       dispatch(
         addItemToCart({
-          userId: DEMO_USER_ID,
+          userId,
           productId: product.id,
           quantity,
         }),
       ),
-    [dispatch],
+    [dispatch, userId],
   )
 
-  const reload = useCallback(() => dispatch(fetchCart(DEMO_USER_ID)), [dispatch])
+  const reload = useCallback(() => dispatch(fetchCart(userId)), [dispatch, userId])
 
   const setQuantity = useCallback(
     (itemId, quantity) =>
-      dispatch(updateItemQuantity({ userId: DEMO_USER_ID, itemId, quantity })),
-    [dispatch],
+      dispatch(updateItemQuantity({ userId, itemId, quantity })),
+    [dispatch, userId],
   )
 
   const removeItem = useCallback(
-    (itemId) => dispatch(removeCartItem({ userId: DEMO_USER_ID, itemId })),
-    [dispatch],
+    (itemId) => dispatch(removeCartItem({ userId, itemId })),
+    [dispatch, userId],
   )
 
   return {
