@@ -1,5 +1,6 @@
 package com.enterprise.product.controller;
 
+import com.enterprise.product.dto.PagedResponse;
 import com.enterprise.product.dto.ProductRequest;
 import com.enterprise.product.dto.ProductResponse;
 import com.enterprise.product.service.ProductService;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST entry point for products. Delegates everything to ProductService and
@@ -62,6 +65,33 @@ public class ProductController {
         log.info("DELETE /api/products/{}", id);
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Paginated + sorted listing, e.g.
+     * GET /api/products/paged?page=0&size=5&sortBy=price&direction=desc
+     */
+    @GetMapping("/paged")
+    public ResponseEntity<PagedResponse<ProductResponse>> getProductsPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+        log.info("GET /api/products/paged page={} size={} sortBy={} direction={}",
+                page, size, sortBy, direction);
+        return ResponseEntity.ok(productService.getProductsPaged(page, size, sortBy, direction));
+    }
+
+    @GetMapping("/in-stock")
+    public ResponseEntity<List<ProductResponse>> getInStockProducts() {
+        log.info("GET /api/products/in-stock");
+        return ResponseEntity.ok(productService.getInStockProducts());
+    }
+
+    @GetMapping("/inventory-value")
+    public ResponseEntity<Map<String, BigDecimal>> getInventoryValue() {
+        log.info("GET /api/products/inventory-value");
+        return ResponseEntity.ok(productService.getInventoryValueByProduct());
     }
 
     /**

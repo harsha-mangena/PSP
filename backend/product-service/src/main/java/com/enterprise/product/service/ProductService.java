@@ -1,5 +1,6 @@
 package com.enterprise.product.service;
 
+import com.enterprise.product.dto.PagedResponse;
 import com.enterprise.product.dto.ProductRequest;
 import com.enterprise.product.dto.ProductResponse;
 import com.enterprise.product.entity.Product;
@@ -8,10 +9,17 @@ import com.enterprise.product.mapper.ProductMapper;
 import com.enterprise.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +75,63 @@ public class ProductService {
         }
         productRepository.deleteById(id);
         log.info("Deleted product id={}", id);
+    }
+
+    /**
+     * Database-level pagination and sorting. The sort is pushed into SQL Server
+     * rather than applied in memory, so it stays correct across pages.
+     */
+    @Transactional(readOnly = true)
+    public PagedResponse<ProductResponse> getProductsPaged(int page, int size,
+                                                           String sortBy, String direction) {
+        Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction)
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        List<ProductResponse> content = productPage.getContent().stream()
+                .map(ProductMapper::toResponse)
+                .collect(Collectors.toList());
+
+        log.info("Paged products page={} size={} sortBy={} direction={} totalElements={}",
+                page, size, sortBy, direction, productPage.getTotalElements());
+
+        return PagedResponse.<ProductResponse>builder()
+                .content(content)
+                .page(productPage.getNumber())
+                .size(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .first(productPage.isFirst())
+                .last(productPage.isLast())
+                .build();
+    }
+
+    /**
+     * Stream-based filtering: only products that are actually purchasable.
+     */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getInStockProducts() {
+        return productRepository.findAll().stream()
+                .filter(product -> product.getStock() != null && product.getStock() > 0)
+                .sorted(Comparator.comparing(Product::getName))
+                .map(ProductMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Stream-based transformation: product name -> total value of stock on hand.
+     */
+    @Transactional(readOnly = true)
+    public Map<String, BigDecimal> getInventoryValueByProduct() {
+        return productRepository.findAll().stream()
+                .collect(Collectors.toMap(
+                        Product::getName,
+                        product -> product.getPrice()
+                                .multiply(BigDecimal.valueOf(product.getStock())),
+                        BigDecimal::add));
     }
 
     /**
