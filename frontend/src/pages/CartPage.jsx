@@ -9,7 +9,7 @@ import {
   selectCartItems,
   selectCartStatus,
 } from '../features/cart/cartSlice'
-import { fetchProducts, selectProducts, selectProductsStatus } from '../features/products/productsSlice'
+import { fetchProductsByIds, selectProductsById } from '../features/products/productsSlice'
 import { DEMO_USER_ID } from '../utils/constants'
 import { formatPrice } from '../utils/format'
 
@@ -23,25 +23,22 @@ function CartPage() {
   const cartId = useSelector(selectCartId)
   const status = useSelector(selectCartStatus)
   const error = useSelector(selectCartError)
-  const products = useSelector(selectProducts)
-  const productsStatus = useSelector(selectProductsStatus)
+  const productsById = useSelector(selectProductsById)
 
   useEffect(() => {
     dispatch(fetchCart(DEMO_USER_ID))
   }, [dispatch])
 
   useEffect(() => {
-    // Needed for the product-name join when landing on this page directly.
-    if (productsStatus === 'idle') {
-      dispatch(fetchProducts())
+    // Cart items may reference products that are not on the loaded page.
+    if (items.length > 0) {
+      dispatch(fetchProductsByIds(items.map((item) => item.productId)))
     }
-  }, [productsStatus, dispatch])
+  }, [items, dispatch])
 
   const rows = useMemo(() => {
-    const byId = new Map(products.map((product) => [product.id, product]))
-
     return items.map((item) => {
-      const product = byId.get(item.productId)
+      const product = productsById[item.productId]
       const unitPrice = Number(product?.price ?? 0)
       return {
         ...item,
@@ -50,7 +47,7 @@ function CartPage() {
         lineTotal: unitPrice * item.quantity,
       }
     })
-  }, [items, products])
+  }, [items, productsById])
 
   const total = useMemo(
     () => rows.reduce((sum, row) => sum + row.lineTotal, 0),
