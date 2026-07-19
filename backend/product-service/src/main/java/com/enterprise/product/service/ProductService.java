@@ -135,6 +135,28 @@ public class ProductService {
     }
 
     /**
+     * Backed by a native SQL Server query (see ProductRepository).
+     */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getProductsAbovePrice(BigDecimal minPrice) {
+        List<ProductResponse> results = productRepository.findProductsAbovePrice(minPrice).stream()
+                .map(ProductMapper::toResponse)
+                .collect(Collectors.toList());
+        log.info("Native query products above price={} returned {} rows", minPrice, results.size());
+        return results;
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getLowStockProducts(Integer threshold, Integer limit) {
+        List<ProductResponse> results = productRepository.findLowStockProducts(threshold, limit).stream()
+                .map(ProductMapper::toResponse)
+                .collect(Collectors.toList());
+        log.info("Native query low stock threshold={} limit={} returned {} rows",
+                threshold, limit, results.size());
+        return results;
+    }
+
+    /**
      * Used by the cart flow to confirm a product can satisfy a requested quantity.
      */
     @Transactional(readOnly = true)

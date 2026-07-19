@@ -95,6 +95,24 @@ public class ProductController {
     }
 
     /**
+     * Native query endpoint, e.g. GET /api/products/above-price?minPrice=100
+     */
+    @GetMapping("/above-price")
+    public ResponseEntity<List<ProductResponse>> getProductsAbovePrice(
+            @RequestParam BigDecimal minPrice) {
+        log.info("GET /api/products/above-price minPrice={}", minPrice);
+        return ResponseEntity.ok(productService.getProductsAbovePrice(minPrice));
+    }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<ProductResponse>> getLowStockProducts(
+            @RequestParam(defaultValue = "10") Integer threshold,
+            @RequestParam(defaultValue = "5") Integer limit) {
+        log.info("GET /api/products/low-stock threshold={} limit={}", threshold, limit);
+        return ResponseEntity.ok(productService.getLowStockProducts(threshold, limit));
+    }
+
+    /**
      * Consumed by cart-service during add-to-cart validation.
      */
     @GetMapping("/{id}/stock-check")
