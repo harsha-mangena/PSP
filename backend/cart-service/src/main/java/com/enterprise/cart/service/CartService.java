@@ -8,7 +8,9 @@ import com.enterprise.cart.dto.ProductDto;
 import com.enterprise.cart.entity.Cart;
 import com.enterprise.cart.entity.CartItem;
 import com.enterprise.cart.exception.CartNotFoundException;
+import com.enterprise.cart.event.CartEvent;
 import com.enterprise.cart.exception.InsufficientStockException;
+import com.enterprise.cart.producer.CartEventProducer;
 import com.enterprise.cart.repository.CartItemRepository;
 import com.enterprise.cart.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +34,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductClient productClient;
+    private final CartEventProducer cartEventProducer;
 
     @Transactional
     public CartResponse addToCart(AddToCartRequest request) {
@@ -71,6 +75,14 @@ public class CartService {
         cartItemRepository.save(item);
         log.info("Added product={} qty={} to cart={}",
                 request.getProductId(), request.getQuantity(), cart.getId());
+
+        cartEventProducer.publishCartEvent(CartEvent.builder()
+                .cartId(cart.getId())
+                .productId(request.getProductId())
+                .quantity(request.getQuantity())
+                .userId(request.getUserId())
+                .occurredAt(Instant.now())
+                .build());
 
         return buildCartResponse(cart);
     }
