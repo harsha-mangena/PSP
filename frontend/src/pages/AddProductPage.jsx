@@ -1,13 +1,21 @@
 import { useState } from 'react'
-import { productService } from '../services/productService'
-import { extractErrorMessage } from '../services/apiClient'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  createProduct,
+  selectCreateError,
+  selectCreateStatus,
+  selectLastCreated,
+} from '../features/products/productsSlice'
 
 const EMPTY_FORM = { name: '', price: '', stock: '' }
 
-function AddProductPage({ onCreated }) {
+function AddProductPage() {
+  const dispatch = useDispatch()
+  const createStatus = useSelector(selectCreateStatus)
+  const createError = useSelector(selectCreateError)
+  const lastCreated = useSelector(selectLastCreated)
+
   const [form, setForm] = useState(EMPTY_FORM)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -16,21 +24,19 @@ function AddProductPage({ onCreated }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setError(null)
-    setSuccess(null)
 
-    try {
-      const created = await productService.create({
+    const action = await dispatch(
+      createProduct({
         name: form.name,
         // The API expects numbers; inputs always yield strings.
         price: Number(form.price),
         stock: Number(form.stock),
-      })
-      setSuccess(`Created "${created.name}" (id ${created.id})`)
+      }),
+    )
+
+    // Only clear the form when the thunk actually succeeded.
+    if (createProduct.fulfilled.match(action)) {
       setForm(EMPTY_FORM)
-      onCreated?.()
-    } catch (err) {
-      setError(extractErrorMessage(err))
     }
   }
 
@@ -66,14 +72,23 @@ function AddProductPage({ onCreated }) {
               placeholder="40"
             />
           </label>
-          <button type="submit" className="primary" style={{ alignSelf: 'end' }}>
-            Create
+          <button
+            type="submit"
+            className="primary"
+            style={{ alignSelf: 'end' }}
+            disabled={createStatus === 'loading'}
+          >
+            {createStatus === 'loading' ? 'Saving…' : 'Create'}
           </button>
         </div>
       </form>
 
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
-      {success && <p style={{ color: 'var(--success)' }}>{success}</p>}
+      {createError && <p style={{ color: 'var(--danger)' }}>{createError}</p>}
+      {createStatus === 'succeeded' && lastCreated && (
+        <p style={{ color: 'var(--success)' }}>
+          Created &quot;{lastCreated.name}&quot; (id {lastCreated.id})
+        </p>
+      )}
     </section>
   )
 }

@@ -1,40 +1,31 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import ProductTable from '../components/ProductTable'
-import { productService } from '../services/productService'
-import { extractErrorMessage } from '../services/apiClient'
+import {
+  deleteProduct,
+  fetchProducts,
+  selectProducts,
+  selectProductsError,
+  selectProductsStatus,
+} from '../features/products/productsSlice'
 
 /**
- * Product list. State moves into Redux at 2C; for now the page holds it
- * locally, but the HTTP calls already live in the service layer.
+ * Reads products from the Redux store. The component itself performs no HTTP
+ * calls; it only dispatches actions and renders state.
  */
 function ProductListPage() {
-  const [products, setProducts] = useState([])
-  const [error, setError] = useState(null)
-
-  const loadProducts = useCallback(async () => {
-    try {
-      setError(null)
-      setProducts(await productService.getAll())
-    } catch (err) {
-      setError(extractErrorMessage(err))
-    }
-  }, [])
+  const dispatch = useDispatch()
+  const products = useSelector(selectProducts)
+  const status = useSelector(selectProductsStatus)
+  const error = useSelector(selectProductsError)
 
   useEffect(() => {
-    loadProducts()
-  }, [loadProducts])
+    if (status === 'idle') {
+      dispatch(fetchProducts())
+    }
+  }, [status, dispatch])
 
-  const handleDelete = useCallback(
-    async (id) => {
-      try {
-        await productService.remove(id)
-        await loadProducts()
-      } catch (err) {
-        setError(extractErrorMessage(err))
-      }
-    },
-    [loadProducts],
-  )
+  const handleDelete = useCallback((id) => dispatch(deleteProduct(id)), [dispatch])
 
   return (
     <section>
