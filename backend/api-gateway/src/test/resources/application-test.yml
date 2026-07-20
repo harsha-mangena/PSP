@@ -33,3 +33,5 @@ app:
   auth:
     validation-url: http://localhost:8082/api/auth/me
   public-paths: /api/auth/login,/api/auth/logout,/api/auth/me
+  security:
+    internal-secret: test-internal-secret

@@ -39,6 +39,12 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
     @Value("${app.public-paths}")
     private List<String> publicPaths;
 
+    @Value("${app.security.internal-secret}")
+    private String internalSecret;
+
+    private static final String SECRET_HEADER = "X-Internal-Secret";
+    private static final String USER_HEADER = "X-Authenticated-User";
+
     public AuthenticationFilter(WebClient.Builder loadBalancedWebClientBuilder) {
         this.webClient = loadBalancedWebClientBuilder.build();
     }
@@ -53,8 +59,10 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             return chain.filter(exchange);
         }
 
+        // Public and authenticated requests alike are forwarded with the internal
+        // secret, since the services now trust only callers that present it.
         if (isPublic(path)) {
-            return chain.filter(exchange);
+            return chain.filter(withInternalHeaders(exchange, null));
         }
 
         String authorization = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -65,23 +73,38 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
         return webClient.get()
                 .uri(validationUrl)
+                // The validation call also targets a now-secured service.
+                .header(SECRET_HEADER, internalSecret)
                 .header(HttpHeaders.AUTHORIZATION, authorization)
                 .retrieve()
                 .bodyToMono(java.util.Map.class)
                 .flatMap(body -> {
                     String username = String.valueOf(body.get("username"));
-                    // Hand the resolved identity downstream so services never
-                    // have to re-derive it from the token.
-                    ServerWebExchange mutated = exchange.mutate()
-                            .request(builder -> builder.header("X-Authenticated-User", username))
-                            .build();
-                    return chain.filter(mutated);
+                    return chain.filter(withInternalHeaders(exchange, username));
                 })
                 .onErrorResume(error -> {
                     log.warn("401 {} {} - token rejected: {}",
                             request.getMethod(), path, error.getMessage());
                     return unauthorized(exchange, "Invalid or expired token");
                 });
+    }
+
+    /**
+     * Stamps the internal secret (and, when known, the resolved user) onto the
+     * request. Any client-supplied copies of these headers are removed first, so
+     * a caller cannot forge trust by sending them to the gateway.
+     */
+    private ServerWebExchange withInternalHeaders(ServerWebExchange exchange, String username) {
+        return exchange.mutate()
+                .request(builder -> builder.headers(headers -> {
+                    headers.remove(SECRET_HEADER);
+                    headers.remove(USER_HEADER);
+                    headers.set(SECRET_HEADER, internalSecret);
+                    if (username != null) {
+                        headers.set(USER_HEADER, username);
+                    }
+                }))
+                .build();
     }
 
     private boolean isPublic(String path) {

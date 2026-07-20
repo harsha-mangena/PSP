@@ -60,6 +60,10 @@ eureka:
 app:
   auth:
     validation-url: lb://cart-service/api/auth/me
+  # Shared secret the gateway stamps on every forwarded request so services can
+  # confirm the call came through here. Override via APP_SECURITY_INTERNAL_SECRET.
+  security:
+    internal-secret: ${APP_SECURITY_INTERNAL_SECRET:s3cr3t-internal-gateway-key}
   # Paths reachable without a token. Comma-separated rather than a YAML list so
   # it binds to a List<String> via @Value.
   public-paths: /api/auth/login,/api/auth/logout,/api/auth/me

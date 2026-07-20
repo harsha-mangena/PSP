@@ -191,24 +191,38 @@ Orders live in cart-service rather than a separate order-service — a third
 service would mean another database, port and deployment for what is a mock
 checkout.
 
-**Auth is enforced at the gateway.** `AuthService` (in cart-service) validates
-credentials from configuration and issues an in-memory token. The gateway's
-`AuthenticationFilter` runs before routing and rejects any API call without a
-valid token — it asks cart-service (`/api/auth/me`) to resolve the token on
-every request, so revocation is immediate rather than waiting for a cache to
-expire. On success it forwards an `X-Authenticated-User` header so services
-receive the resolved identity. `/api/auth/**` is public, since that is how a
-caller obtains a token.
+**Two layers of auth.**
 
-Traffic through the gateway (`:8080`) — which is all the frontend uses — is
-therefore protected: `curl localhost:8080/api/products` returns 401 without a
-token. The service ports (`:8081`, `:8082`) remain open for local development
-and are not exposed publicly; the gateway is the intended entry point. A
-fully locked-down setup would also put Spring Security on each service so they
-trust only the gateway (e.g. a shared header or mTLS) — that is the remaining
-step beyond this exercise. Tokens are held in memory, so restarting cart-service
-ends all sessions; the frontend detects this via `/api/auth/me` on boot and
-signs out cleanly.
+*User authentication (at the gateway).* `AuthService` (in cart-service)
+validates credentials from configuration and issues an in-memory token. The
+gateway's `AuthenticationFilter` runs before routing and rejects any API call
+without a valid token — it asks cart-service (`/api/auth/me`) to resolve the
+token on every request, so revocation is immediate rather than waiting for a
+cache to expire. `/api/auth/**` is public, since that is how a caller obtains a
+token. Tokens are held in memory, so restarting cart-service ends all sessions;
+the frontend detects this via `/api/auth/me` on boot and signs out cleanly.
+
+*Service trust (Spring Security on each service).* product-service and
+cart-service run Spring Security with a filter (`InternalSecretFilter`) that
+authenticates a request only if it carries a shared `X-Internal-Secret` header.
+The gateway stamps this header — and the resolved `X-Authenticated-User` — onto
+every request it forwards, first stripping any client-supplied copies so the
+headers cannot be spoofed through the gateway. Trusted peer calls carry it too:
+cart-service's WebClient adds it on every cart→product call, and the gateway
+adds it on its token-validation call. A request that reaches a service port
+directly has no valid secret and gets 401:
+
+```
+curl localhost:8080/api/products              → 401 (no token, rejected at gateway)
+curl localhost:8081/api/products              → 401 (no secret, rejected at service)
+curl localhost:8081/api/products -H "X-Internal-Secret: wrong"  → 401
+```
+
+The secret is the trust boundary, so it must stay secret — it comes from
+configuration and should be overridden per environment via
+`APP_SECURITY_INTERNAL_SECRET`. A production-grade version would replace the
+shared secret with mTLS between the gateway and the services, but the
+enforcement structure is the same.
 
 Cart and orders are scoped to the signed-in username, so signing in as a
 different user yields a different cart and order history.
@@ -237,7 +251,7 @@ loaded page client-side via `useMemo`.
 ./scripts/test-backend.sh     # or: cd backend/<service> && ./mvnw test
 ```
 
-70 tests, ~15s, **no Docker required**. Unit tests are pure JUnit 5 + Mockito;
+75 tests, ~15s, **no Docker required**. Unit tests are pure JUnit 5 + Mockito;
 the context tests run against the `test` profile (H2 in SQL Server compatibility
 mode, Kafka and Eureka disabled), so they validate each bean graph without live
 infrastructure.
@@ -246,8 +260,9 @@ Covered: product CRUD and the not-found paths, stock reduction including the
 refusal to go negative, stream filtering and inventory maths, pagination and
 sort direction, cart quantity accumulation, cross-cart item access, checkout
 totals and the roll-back when a line is short on stock, order-line price
-snapshotting, the auth token lifecycle, and the gateway auth filter
-(public-path passthrough, preflight, and missing-token rejection).
+snapshotting, the auth token lifecycle, the gateway auth filter (public-path
+passthrough, preflight, missing-token rejection), and the service-side internal
+secret filter (correct/wrong/missing secret and principal forwarding).
 
 ### Frontend end-to-end
 
