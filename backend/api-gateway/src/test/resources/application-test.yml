@@ -1,0 +1,35 @@
+# The context test must not need Eureka. Disable discovery and give the routes
+# static test URIs so the gateway can wire up without a live registry.
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/auth/**
+        - id: products
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/products/**
+        - id: cart
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/cart/**
+        - id: orders
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/orders/**
+  main:
+    web-application-type: reactive
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+app:
+  auth:
+    validation-url: http://localhost:8082/api/auth/me
+  public-paths: /api/auth/login,/api/auth/logout,/api/auth/me

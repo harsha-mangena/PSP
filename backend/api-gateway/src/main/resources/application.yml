@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        # Auth is public: it is how a caller obtains a token in the first place.
+        - id: auth
+          uri: lb://cart-service
+          predicates:
+            - Path=/api/auth/**
+
+        - id: products
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products/**
+
+        - id: cart
+          uri: lb://cart-service
+          predicates:
+            - Path=/api/cart/**
+
+        - id: orders
+          uri: lb://cart-service
+          predicates:
+            - Path=/api/orders/**
+
+      # Safety net: if a downstream service ever sets CORS headers of its own,
+      # keep the gateway's rather than emitting both. Browsers reject a
+      # duplicated Access-Control-Allow-Origin outright.
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedMethods: [GET, POST, PUT, DELETE, OPTIONS]
+            allowedHeaders: "*"
+    loadbalancer:
+      cache:
+        # Short TTL so a restarted instance is picked up quickly in development.
+        ttl: 5s
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+# Where the gateway validates bearer tokens. cart-service owns the sessions,
+# so it is the authority.
+app:
+  auth:
+    validation-url: lb://cart-service/api/auth/me
+  # Paths reachable without a token. Comma-separated rather than a YAML list so
+  # it binds to a List<String> via @Value.
+  public-paths: /api/auth/login,/api/auth/logout,/api/auth/me
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO

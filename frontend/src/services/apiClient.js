@@ -1,23 +1,32 @@
 import axios from 'axios'
+import { authStorage } from '../utils/tokenStorage'
 
 /**
- * Axios instances for the two backend microservices. Components never import
- * axios directly; they go through the service modules in this folder.
+ * Everything goes through the API gateway, which routes to product-service and
+ * cart-service by service name via Eureka. The frontend therefore knows one
+ * origin, not one per microservice.
  */
-const PRODUCT_SERVICE_URL =
-  import.meta.env.VITE_PRODUCT_SERVICE_URL ?? 'http://localhost:8081'
-const CART_SERVICE_URL =
-  import.meta.env.VITE_CART_SERVICE_URL ?? 'http://localhost:8082'
+const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL ?? 'http://localhost:8080'
 
-const createClient = (baseURL) =>
-  axios.create({
-    baseURL,
-    headers: { 'Content-Type': 'application/json' },
-    timeout: 10000,
-  })
+export const api = axios.create({
+  baseURL: GATEWAY_URL,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 10000,
+})
 
-export const productApi = createClient(PRODUCT_SERVICE_URL)
-export const cartApi = createClient(CART_SERVICE_URL)
+/**
+ * Attach the bearer token to every outbound call. The gateway rejects
+ * unauthenticated requests, so this is what keeps the app working once signed
+ * in — and it reads from storage rather than the store to avoid a circular
+ * dependency between the client and the auth slice.
+ */
+api.interceptors.request.use((config) => {
+  const session = authStorage.read()
+  if (session?.token) {
+    config.headers.Authorization = `Bearer ${session.token}`
+  }
+  return config
+})
 
 /**
  * Turns an axios failure into a plain message string. The backend's
@@ -36,7 +45,7 @@ export const extractErrorMessage = (error) => {
 
   if (data?.message) return data.message
   if (error?.code === 'ECONNABORTED') return 'The request timed out.'
-  if (!error?.response) return 'Cannot reach the server. Is the backend running?'
+  if (!error?.response) return 'Cannot reach the server. Is the gateway running?'
 
   return error.message ?? 'Something went wrong.'
 }

@@ -8,36 +8,58 @@ Redux Toolkit frontend.
 ```
 Browser (React 18 + Redux Toolkit, :3000)
         │
-        ├──────────────► product-service (:8081) ──► SQL Server (productdb)
-        │                        ▲
-        │                        │ WebClient
-        └──────────────► cart-service (:8082) ────► SQL Server (cartdb)
-                                 │
-                                 ▼
-                    Kafka topics: cart-events, order-events
-                                 │
-                                 ▼
-                  product-service consumers (log events)
+        │  one origin, bearer token on every call
+        ▼
+   API gateway (:8080) ──── enforces the token ────┐
+        │  routes by service name (lb://)          │ validates via
+        │                                          ▼ /api/auth/me
+        ├──────────► product-service (:8081) ──► SQL Server (productdb)
+        │                    ▲                     
+        │                    │ WebClient           
+        └──────────► cart-service (:8082) ──────► SQL Server (cartdb)
+                             │
+                             ▼
+                Kafka topics: cart-events, order-events
+                             │
+                             ▼
+              product-service consumers (log events)
+
+   all four services register with:
+   Eureka discovery server (:8761)
 ```
+
+### api-gateway (port 8080)
+The single entry point. Routes to the services by name through Eureka
+(`lb://product-service`, `lb://cart-service`), owns CORS, and rejects
+unauthenticated API calls before they reach a service (see Design notes).
+
+### discovery-server (port 8761)
+Eureka registry. Every service registers here, so the gateway resolves service
+names to live instances instead of hardcoded ports, with client-side load
+balancing across instances.
 
 ### product-service (port 8081)
 Product CRUD, pagination/sorting, native queries, stock reduction, and the
 Kafka **consumers** (cart events and order events).
 
 ### cart-service (port 8082)
-Cart operations, mock checkout / order history, calls product-service over
-**WebClient**, and the Kafka **producers**. `RestTemplate` is not used anywhere in this project.
+Cart operations, mock checkout / order history, login/token issuing, calls
+product-service over **WebClient**, and the Kafka **producers**. `RestTemplate`
+is not used anywhere in this project.
 
 ## Layout
 
 ```
 PSP/
 ├── backend/
-│   ├── product-service/   controller → service → repository → entity
-│   └── cart-service/      controller → service → repository → entity
-├── frontend/              app/ features/ pages/ components/ services/ hooks/ routes/ utils/
-├── docker-compose.yml     SQL Server + Kafka
-└── scripts/run-backend.sh build + boot both services
+│   ├── discovery-server/   Eureka registry (:8761)
+│   ├── api-gateway/        single entry point (:8080), routing + auth
+│   ├── product-service/    controller → service → repository → entity
+│   └── cart-service/       controller → service → repository → entity
+├── frontend/               app/ features/ pages/ components/ services/ hooks/ routes/ utils/
+├── docker-compose.yml      SQL Server + Kafka
+├── scripts/run-backend.sh  build + boot all four services in order
+└── scripts/test-backend.sh run all backend tests (no Docker)
 ```
 
 ## Prerequisites
@@ -78,11 +100,18 @@ Hibernate creates the tables on startup.
 ./scripts/run-backend.sh
 ```
 
-Or individually:
+Starts all four services in dependency order: discovery-server (:8761) first,
+then product-service and cart-service, then api-gateway once both have
+registered. The Eureka dashboard is at http://localhost:8761.
+
+Starting individually requires the same order — the gateway needs the services
+in the registry before its `lb://` routes resolve:
 
 ```bash
-cd backend/product-service && ./mvnw spring-boot:run
-cd backend/cart-service    && ./mvnw spring-boot:run
+cd backend/discovery-server && ./mvnw spring-boot:run   # wait for :8761
+cd backend/product-service  && ./mvnw spring-boot:run
+cd backend/cart-service     && ./mvnw spring-boot:run
+cd backend/api-gateway      && ./mvnw spring-boot:run   # after services register
 ```
 
 ### 3. Frontend
@@ -93,12 +122,19 @@ npm install
 npm run dev        # http://localhost:3000
 ```
 
-Sign in with **`root` / `root1234`** (configurable via `app.auth.username` /
-`app.auth.password`, or the `APP_AUTH_USERNAME` / `APP_AUTH_PASSWORD` env vars).
+The frontend talks only to the gateway (`http://localhost:8080`); it never
+addresses a service directly. Sign in with **`root` / `root1234`** (configurable
+via `app.auth.username` / `app.auth.password`, or the `APP_AUTH_USERNAME` /
+`APP_AUTH_PASSWORD` env vars).
 
 ## API
 
-### product-service (8081)
+All endpoints are reached through the gateway at **`http://localhost:8080`**.
+Every call except `/api/auth/**` requires an `Authorization: Bearer <token>`
+header; the gateway returns 401 otherwise. The paths below are unchanged whether
+called through the gateway or (in development) directly on a service port.
+
+### product-service
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -115,7 +151,7 @@ Sign in with **`root` / `root1234`** (configurable via `app.auth.username` /
 | GET | `/api/products/{id}/stock-check?quantity=` | Stock validation |
 | POST | `/api/products/{id}/reduce-stock?quantity=` | Decrement stock at checkout |
 
-### cart-service (8082)
+### cart-service
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -144,8 +180,8 @@ partition. Publish failures are logged but do not fail the request — the cart
 write has already committed. The consumer wraps `JsonDeserializer` in
 `ErrorHandlingDeserializer` so a poison message cannot wedge it.
 
-**Checkout is a mock payment.** No gateway is called, but everything around it
-is real: `OrderService.checkout` decrements stock in product-service over
+**Checkout is a mock payment.** No payment provider is called, but everything
+around it is real: `OrderService.checkout` decrements stock in product-service over
 WebClient, persists the order, clears the cart, and publishes to `order-events`.
 Stock is reduced *before* the order is written, so if any line is short the
 whole transaction rolls back and no order exists. Product name and price are
@@ -155,14 +191,24 @@ Orders live in cart-service rather than a separate order-service — a third
 service would mean another database, port and deployment for what is a mock
 checkout.
 
-**Login is a UI gate, not security.** `AuthService` validates credentials from
-configuration, issues an in-memory token, and the frontend guards its routes
-with it. But there is no filter or Spring Security on the request path, so the
-REST APIs remain callable without a token — `curl localhost:8081/api/products`
-still works. Making this real means adding Spring Security to both services and
-validating the token on every request. Tokens are held in memory, so restarting
-cart-service ends all sessions; the frontend detects this via `/api/auth/me` on
-boot and signs out cleanly.
+**Auth is enforced at the gateway.** `AuthService` (in cart-service) validates
+credentials from configuration and issues an in-memory token. The gateway's
+`AuthenticationFilter` runs before routing and rejects any API call without a
+valid token — it asks cart-service (`/api/auth/me`) to resolve the token on
+every request, so revocation is immediate rather than waiting for a cache to
+expire. On success it forwards an `X-Authenticated-User` header so services
+receive the resolved identity. `/api/auth/**` is public, since that is how a
+caller obtains a token.
+
+Traffic through the gateway (`:8080`) — which is all the frontend uses — is
+therefore protected: `curl localhost:8080/api/products` returns 401 without a
+token. The service ports (`:8081`, `:8082`) remain open for local development
+and are not exposed publicly; the gateway is the intended entry point. A
+fully locked-down setup would also put Spring Security on each service so they
+trust only the gateway (e.g. a shared header or mTLS) — that is the remaining
+step beyond this exercise. Tokens are held in memory, so restarting cart-service
+ends all sessions; the frontend detects this via `/api/auth/me` on boot and
+signs out cleanly.
 
 Cart and orders are scoped to the signed-in username, so signing in as a
 different user yields a different cart and order history.
@@ -191,16 +237,17 @@ loaded page client-side via `useMemo`.
 ./scripts/test-backend.sh     # or: cd backend/<service> && ./mvnw test
 ```
 
-64 tests, ~12s, **no Docker required**. Unit tests are pure JUnit 5 + Mockito;
-the two context tests run against the `test` profile (H2 in SQL Server
-compatibility mode, Kafka listeners disabled), so they validate the bean graph
-without live infrastructure.
+70 tests, ~15s, **no Docker required**. Unit tests are pure JUnit 5 + Mockito;
+the context tests run against the `test` profile (H2 in SQL Server compatibility
+mode, Kafka and Eureka disabled), so they validate each bean graph without live
+infrastructure.
 
 Covered: product CRUD and the not-found paths, stock reduction including the
 refusal to go negative, stream filtering and inventory maths, pagination and
 sort direction, cart quantity accumulation, cross-cart item access, checkout
 totals and the roll-back when a line is short on stock, order-line price
-snapshotting, and the auth token lifecycle.
+snapshotting, the auth token lifecycle, and the gateway auth filter
+(public-path passthrough, preflight, and missing-token rejection).
 
 ### Frontend end-to-end
 

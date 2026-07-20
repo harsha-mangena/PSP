@@ -6,7 +6,7 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 STATUS=0
 
-for svc in product-service cart-service; do
+for svc in product-service cart-service api-gateway; do
   echo "==> testing $svc"
   ( cd "$ROOT/backend/$svc" && ./mvnw -q -B test ) || STATUS=1
 done

@@ -1,4 +1,4 @@
-import { cartApi } from './apiClient'
+import { api } from './apiClient'
 
 /**
  * Cart API surface. Adding an item triggers the backend chain:
@@ -6,22 +6,22 @@ import { cartApi } from './apiClient'
  */
 export const cartService = {
   addItem: async ({ userId, productId, quantity }) => {
-    const { data } = await cartApi.post('/api/cart/items', { userId, productId, quantity })
+    const { data } = await api.post('/api/cart/items', { userId, productId, quantity })
     return data
   },
 
   getCart: async (userId) => {
-    const { data } = await cartApi.get(`/api/cart/${userId}`)
+    const { data } = await api.get(`/api/cart/${userId}`)
     return data
   },
 
   updateQuantity: async ({ userId, itemId, quantity }) => {
-    const { data } = await cartApi.put(`/api/cart/${userId}/items/${itemId}`, { quantity })
+    const { data } = await api.put(`/api/cart/${userId}/items/${itemId}`, { quantity })
     return data
   },
 
   removeItem: async ({ userId, itemId }) => {
-    const { data } = await cartApi.delete(`/api/cart/${userId}/items/${itemId}`)
+    const { data } = await api.delete(`/api/cart/${userId}/items/${itemId}`)
     return data
   },
 }
@@ -31,12 +31,12 @@ export const cartService = {
  */
 export const orderService = {
   checkout: async (userId) => {
-    const { data } = await cartApi.post('/api/orders/checkout', { userId })
+    const { data } = await api.post('/api/orders/checkout', { userId })
     return data
   },
 
   getOrders: async (userId) => {
-    const { data } = await cartApi.get(`/api/orders/${userId}`)
+    const { data } = await api.get(`/api/orders/${userId}`)
     return data
   },
 }

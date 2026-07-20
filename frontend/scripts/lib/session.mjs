@@ -1,13 +1,14 @@
 /**
- * Shared test helper: obtains a real token from the auth API and seeds it into
- * localStorage before the app boots, so protected routes render directly.
+ * Shared test helper: obtains a real token through the API gateway and seeds it
+ * into localStorage before the app boots, so protected routes render directly
+ * and the axios interceptor has a token to attach.
  */
 export const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 export const CREDENTIALS = { username: 'root', password: 'root1234' }
 
 export async function fetchSession() {
-  const response = await fetch('http://localhost:8082/api/auth/login', {
+  const response = await fetch('http://localhost:8080/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(CREDENTIALS),
