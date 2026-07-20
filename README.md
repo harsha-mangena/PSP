@@ -185,7 +185,26 @@ loaded page client-side via `useMemo`.
 
 ## Verification
 
-The frontend includes headless-Chrome checks used to verify each step:
+### Backend tests
+
+```bash
+./scripts/test-backend.sh     # or: cd backend/<service> && ./mvnw test
+```
+
+64 tests, ~12s, **no Docker required**. Unit tests are pure JUnit 5 + Mockito;
+the two context tests run against the `test` profile (H2 in SQL Server
+compatibility mode, Kafka listeners disabled), so they validate the bean graph
+without live infrastructure.
+
+Covered: product CRUD and the not-found paths, stock reduction including the
+refusal to go negative, stream filtering and inventory maths, pagination and
+sort direction, cart quantity accumulation, cross-cart item access, checkout
+totals and the roll-back when a line is short on stock, order-line price
+snapshotting, and the auth token lifecycle.
+
+### Frontend end-to-end
+
+These drive real Chrome and **do** need the full stack running:
 
 ```bash
 cd frontend

@@ -30,13 +30,15 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class AuthService {
 
-    private static final Duration TOKEN_TTL = Duration.ofHours(8);
-
     @Value("${app.auth.username}")
     private String configuredUsername;
 
     @Value("${app.auth.password}")
     private String configuredPassword;
+
+    /** How long a session stays valid. Configurable so it can be tuned per environment. */
+    @Value("${app.auth.session-ttl-minutes:480}")
+    private long sessionTtlMinutes;
 
     private final Map<String, Session> sessions = new ConcurrentHashMap<>();
 
@@ -56,7 +58,7 @@ public class AuthService {
         purgeExpired();
 
         String token = UUID.randomUUID().toString();
-        Instant expiresAt = Instant.now().plus(TOKEN_TTL);
+        Instant expiresAt = Instant.now().plus(Duration.ofMinutes(sessionTtlMinutes));
         sessions.put(token, new Session(username, expiresAt));
 
         log.info("Login succeeded for username='{}', session expires {}", username, expiresAt);
