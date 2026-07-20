@@ -1,0 +1,5 @@
+The quick brown fox jumps over the lazy dog.
+Java exercises are a great way to practice programming.
+This line contains the longest word: extraordinarily.
+Short line.
+The end of the sample file.
