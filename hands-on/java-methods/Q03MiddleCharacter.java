@@ -8,6 +8,8 @@
  *
  * Test Data: "350" -> The middle character in the string: 5
  */
+import java.util.Scanner;
+
 public class Q03MiddleCharacter {
 
     static String middle(String text) {
@@ -20,7 +22,10 @@ public class Q03MiddleCharacter {
     }
 
     public static void main(String[] args) {
-        System.out.println("The middle character in the string: " + middle("350"));
-        System.out.println("The middle character in the string: " + middle("w3resource"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
+
+        System.out.println("The middle character in the string: " + middle(text));
     }
 }

@@ -3,17 +3,21 @@
  */
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Scanner;
 
 public class Q15WriteAndReadTextFile {
 
     public static void main(String[] args) throws Exception {
-        Path path = Path.of("sample-data/output.txt");
-        String content = "Hello, this file was written by Q15WriteAndReadTextFile.";
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the file path to write: ");
+        String path = scanner.nextLine();
+        System.out.print("Input the text to write: ");
+        String content = scanner.nextLine();
 
-        Files.writeString(path, content);
+        Files.writeString(Path.of(path), content);
         System.out.println("Wrote: " + content);
 
-        String readBack = Files.readString(path);
+        String readBack = Files.readString(Path.of(path));
         System.out.println("Read back: " + readBack);
     }
 }

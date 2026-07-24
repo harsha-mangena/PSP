@@ -4,6 +4,8 @@
  *
  * Input: "A man, a plan, a canal: Panama" -> Output: true
  */
+import java.util.Scanner;
+
 public class Q06PalindromeCheck {
 
     static boolean isPalindrome(String text) {
@@ -12,6 +14,10 @@ public class Q06PalindromeCheck {
     }
 
     public static void main(String[] args) {
-        System.out.println(isPalindrome("A man, a plan, a canal: Panama"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
+
+        System.out.println(isPalindrome(text));
     }
 }

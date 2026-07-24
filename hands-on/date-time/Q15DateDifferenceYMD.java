@@ -5,12 +5,16 @@
  */
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Scanner;
 
 public class Q15DateDifferenceYMD {
 
     public static void main(String[] args) {
-        LocalDate start = LocalDate.of(2015, 1, 1);
-        LocalDate end = LocalDate.of(2024, 5, 15);
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the start date (yyyy-mm-dd): ");
+        LocalDate start = LocalDate.parse(scanner.nextLine());
+        System.out.print("Input the end date (yyyy-mm-dd): ");
+        LocalDate end = LocalDate.parse(scanner.nextLine());
 
         Period period = Period.between(start, end);
         System.out.println("Difference between " + start + " and " + end + ": "

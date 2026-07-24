@@ -4,10 +4,19 @@
  * Test Data: a=1, b=5, c=1
  * Expected Output: The roots are -0.20871215252208009 and -4.791287847477919
  */
+import java.util.Scanner;
+
 public class Q02QuadraticEquation {
 
     public static void main(String[] args) {
-        double a = 1, b = 5, c = 1;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a: ");
+        double a = scanner.nextDouble();
+        System.out.print("Input b: ");
+        double b = scanner.nextDouble();
+        System.out.print("Input c: ");
+        double c = scanner.nextDouble();
+
         double discriminant = b * b - 4 * a * c;
 
         if (discriminant > 0) {

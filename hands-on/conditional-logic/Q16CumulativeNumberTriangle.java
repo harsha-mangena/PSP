@@ -9,10 +9,15 @@
  * ...
  * 12345678910
  */
+import java.util.Scanner;
+
 public class Q16CumulativeNumberTriangle {
 
     public static void main(String[] args) {
-        int rows = 10;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input number of rows: ");
+        int rows = scanner.nextInt();
+
         for (int i = 1; i <= rows; i++) {
             StringBuilder row = new StringBuilder();
             for (int j = 1; j <= i; j++) {

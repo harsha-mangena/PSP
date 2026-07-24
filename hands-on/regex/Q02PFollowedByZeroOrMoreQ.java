@@ -1,6 +1,8 @@
 /**
  * 2. Match a string that has a 'p' followed by zero or more 'q's.
  */
+import java.util.Scanner;
+
 public class Q02PFollowedByZeroOrMoreQ {
 
     static boolean isPFollowedByZeroOrMoreQ(String text) {
@@ -8,10 +10,10 @@ public class Q02PFollowedByZeroOrMoreQ {
     }
 
     public static void main(String[] args) {
-        System.out.println(isPFollowedByZeroOrMoreQ("p"));      // true - zero q's
-        System.out.println(isPFollowedByZeroOrMoreQ("pq"));     // true
-        System.out.println(isPFollowedByZeroOrMoreQ("pqqqq"));  // true
-        System.out.println(isPFollowedByZeroOrMoreQ("pqr"));    // false - trailing r
-        System.out.println(isPFollowedByZeroOrMoreQ("qp"));     // false - wrong order
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
+
+        System.out.println(isPFollowedByZeroOrMoreQ(text));
     }
 }

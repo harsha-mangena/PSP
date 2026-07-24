@@ -3,10 +3,14 @@
  *
  * Test Data: 5 terms -> 1 3 5 7 9, sum 25
  */
+import java.util.Scanner;
+
 public class Q15OddNumbersAndSum {
 
     public static void main(String[] args) {
-        int terms = 5;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input number of terms: ");
+        int terms = scanner.nextInt();
         int sum = 0;
 
         System.out.println("The odd numbers are :");

@@ -6,6 +6,7 @@
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Q02FilesByExtension {
 
@@ -17,9 +18,15 @@ public class Q02FilesByExtension {
     }
 
     public static void main(String[] args) {
-        String[] result = filesByExtension("sample-data", ".txt");
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the folder path: ");
+        String folder = scanner.nextLine();
+        System.out.print("Input the extension (e.g. .txt): ");
+        String extension = scanner.nextLine();
+
+        String[] result = filesByExtension(folder, extension);
         Arrays.sort(result);
-        System.out.println(".txt files in sample-data:");
+        System.out.println(extension + " files in " + folder + ":");
         for (String name : result) {
             System.out.println(name);
         }

@@ -4,11 +4,15 @@
  * Test Data: 2017-01-25 -> Wednesday
  */
 import java.time.LocalDate;
+import java.util.Scanner;
 
 public class Q13DayOfWeekOfSpecificDate {
 
     public static void main(String[] args) {
-        LocalDate date = LocalDate.of(2017, 1, 25);
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the date (yyyy-mm-dd): ");
+        LocalDate date = LocalDate.parse(scanner.nextLine());
+
         System.out.println(date + " is a " + date.getDayOfWeek());
     }
 }

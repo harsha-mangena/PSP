@@ -1,8 +1,10 @@
 /**
- * Given an array of String values, find the longest string and print it.
+ * Given a list of String values, find the longest string and print it.
  *
- * Input: ["apple", "banana", "kiwi"] -> Output: banana
+ * Input: apple banana kiwi -> Output: banana
  */
+import java.util.Scanner;
+
 public class Q04LongestString {
 
     static String longest(String[] words) {
@@ -16,7 +18,10 @@ public class Q04LongestString {
     }
 
     public static void main(String[] args) {
-        String[] words = {"apple", "banana", "kiwi"};
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the words, separated by spaces: ");
+        String[] words = scanner.nextLine().trim().split("\\s+");
+
         System.out.println(longest(words));
     }
 }

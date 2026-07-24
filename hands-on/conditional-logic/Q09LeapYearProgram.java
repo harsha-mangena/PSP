@@ -3,6 +3,8 @@
  *
  * Test Data: 2016 -> 2016 is a leap year
  */
+import java.util.Scanner;
+
 public class Q09LeapYearProgram {
 
     static boolean isLeapYear(int year) {
@@ -10,7 +12,10 @@ public class Q09LeapYearProgram {
     }
 
     public static void main(String[] args) {
-        int year = 2016;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the year: ");
+        int year = scanner.nextInt();
+
         System.out.println(year + (isLeapYear(year) ? " is a leap year" : " is not a leap year"));
     }
 }

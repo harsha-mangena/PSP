@@ -1,19 +1,25 @@
 /**
- * 17. Print several common date/time format patterns.
+ * 17. Print a given date-time in several common format patterns.
  */
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Scanner;
 
 public class Q17DateTimeFormatPatterns {
 
     public static void main(String[] args) {
-        ZonedDateTime now = ZonedDateTime.now();
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a date-time (yyyy-mm-ddTHH:mm:ss): ");
+        LocalDateTime input = LocalDateTime.parse(scanner.nextLine());
+        ZonedDateTime zoned = input.atZone(ZoneId.systemDefault());
 
-        print(now, "yyyy-MM-dd");
-        print(now, "HH:mm:ss");
-        print(now, "yyyy-MM-dd HH:mm:ss");
-        print(now, "E MMM yyyy HH:mm:ss.SSSZ");
-        print(now, "HH:mm:ss,SSSZ");
+        print(zoned, "yyyy-MM-dd");
+        print(zoned, "HH:mm:ss");
+        print(zoned, "yyyy-MM-dd HH:mm:ss");
+        print(zoned, "E MMM yyyy HH:mm:ss.SSSZ");
+        print(zoned, "HH:mm:ss,SSSZ");
     }
 
     private static void print(ZonedDateTime dateTime, String pattern) {

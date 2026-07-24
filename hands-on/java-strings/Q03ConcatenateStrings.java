@@ -1,15 +1,19 @@
 /**
  * 3. Concatenate a given string to the end of another string.
  *
- * String 1: "PHP Exercises and"
- * String 2: "Python Exercises"
- * The concatenated string: PHP Exercises and Python Exercises
+ * Test Data: "PHP Exercises and", "Python Exercises"
+ * -> The concatenated string: PHP Exercises and Python Exercises
  */
+import java.util.Scanner;
+
 public class Q03ConcatenateStrings {
 
     public static void main(String[] args) {
-        String s1 = "PHP Exercises and";
-        String s2 = "Python Exercises";
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the first string: ");
+        String s1 = scanner.nextLine();
+        System.out.print("Input the second string: ");
+        String s2 = scanner.nextLine();
         String result = s1 + " " + s2;
 
         System.out.println("String 1: " + s1);

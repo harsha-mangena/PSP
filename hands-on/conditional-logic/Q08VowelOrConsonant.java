@@ -5,6 +5,8 @@
  *
  * Test Data: "p" -> Input letter is Consonant
  */
+import java.util.Scanner;
+
 public class Q08VowelOrConsonant {
 
     static String classify(String input) {
@@ -17,9 +19,10 @@ public class Q08VowelOrConsonant {
     }
 
     public static void main(String[] args) {
-        System.out.println(classify("p"));
-        System.out.println(classify("a"));
-        System.out.println(classify("5"));
-        System.out.println(classify("ab"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input an alphabet: ");
+        String input = scanner.nextLine();
+
+        System.out.println(classify(input));
     }
 }

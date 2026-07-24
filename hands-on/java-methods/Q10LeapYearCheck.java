@@ -3,6 +3,8 @@
  *
  * Test Data: 2017 -> false
  */
+import java.util.Scanner;
+
 public class Q10LeapYearCheck {
 
     static boolean isLeapYear(int year) {
@@ -10,7 +12,10 @@ public class Q10LeapYearCheck {
     }
 
     public static void main(String[] args) {
-        System.out.println("Input a year: 2017");
-        System.out.println(isLeapYear(2017));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a year: ");
+        int year = scanner.nextInt();
+
+        System.out.println(isLeapYear(year));
     }
 }

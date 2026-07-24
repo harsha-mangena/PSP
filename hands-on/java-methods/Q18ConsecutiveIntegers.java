@@ -4,6 +4,7 @@
  * Test Data: 15, 16, 17 -> true
  */
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Q18ConsecutiveIntegers {
 
@@ -14,7 +15,15 @@ public class Q18ConsecutiveIntegers {
     }
 
     public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the first number: ");
+        int a = scanner.nextInt();
+        System.out.print("Input the second number: ");
+        int b = scanner.nextInt();
+        System.out.print("Input the third number: ");
+        int c = scanner.nextInt();
+
         System.out.println("Check whether the three said numbers are consecutive or not!"
-                + areConsecutive(15, 16, 17));
+                + areConsecutive(a, b, c));
     }
 }

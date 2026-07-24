@@ -3,6 +3,8 @@
  *
  * Test Data: "w3resource" -> Number of Vowels in the string: 4
  */
+import java.util.Scanner;
+
 public class Q04CountVowels {
 
     static int countVowels(String text) {
@@ -14,6 +16,10 @@ public class Q04CountVowels {
     }
 
     public static void main(String[] args) {
-        System.out.println("Number of Vowels in the string: " + countVowels("w3resource"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the string: ");
+        String text = scanner.nextLine();
+
+        System.out.println("Number of Vowels in the string: " + countVowels(text));
     }
 }

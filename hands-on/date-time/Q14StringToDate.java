@@ -5,6 +5,7 @@
  */
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Scanner;
 
 public class Q14StringToDate {
 
@@ -13,9 +14,11 @@ public class Q14StringToDate {
     }
 
     public static void main(String[] args) {
-        String input = "2017-01-25";
-        LocalDate date = parse(input);
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a date string (yyyy-mm-dd): ");
+        String input = scanner.nextLine();
+
         System.out.println("Input string: " + input);
-        System.out.println("Parsed date: " + date);
+        System.out.println("Parsed date: " + parse(input));
     }
 }

@@ -3,6 +3,8 @@
  *
  * Test Data: 25 -> The sum is 7
  */
+import java.util.Scanner;
+
 public class Q06SumOfDigits {
 
     static int sumOfDigits(int n) {
@@ -16,6 +18,10 @@ public class Q06SumOfDigits {
     }
 
     public static void main(String[] args) {
-        System.out.println("The sum is " + sumOfDigits(25));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input an integer: ");
+        int n = scanner.nextInt();
+
+        System.out.println("The sum is " + sumOfDigits(n));
     }
 }

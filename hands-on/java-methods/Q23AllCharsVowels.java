@@ -1,9 +1,10 @@
 /**
  * 23. Check whether all the characters in a given string are vowels
  * (a, e, i, o, u). Return true if every character is a vowel, otherwise
- * false. (The scan's sample input is OCR-garbled beyond reliable
- * reconstruction, so this demos with a clean all-vowel and a mixed string.)
+ * false.
  */
+import java.util.Scanner;
+
 public class Q23AllCharsVowels {
 
     static boolean allVowels(String text) {
@@ -14,11 +15,11 @@ public class Q23AllCharsVowels {
     }
 
     public static void main(String[] args) {
-        System.out.println("Input a string: AEIOU");
-        System.out.println("Check all the characters of the said string are Vowels or not!");
-        System.out.println(allVowels("AEIOU"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
 
-        System.out.println("Input a string: AIEEK");
-        System.out.println(allVowels("AIEEK"));
+        System.out.println("Check all the characters of the said string are Vowels or not!");
+        System.out.println(allVowels(text));
     }
 }

@@ -5,6 +5,7 @@
  * Input: "listen", "silent" -> Output: true
  */
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Q11AnagramCheck {
 
@@ -17,6 +18,12 @@ public class Q11AnagramCheck {
     }
 
     public static void main(String[] args) {
-        System.out.println(areAnagrams("listen", "silent"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the first string: ");
+        String a = scanner.nextLine();
+        System.out.print("Input the second string: ");
+        String b = scanner.nextLine();
+
+        System.out.println(areAnagrams(a, b));
     }
 }

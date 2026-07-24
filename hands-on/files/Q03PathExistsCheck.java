@@ -2,6 +2,7 @@
  * 3. Check if a file or directory specified by pathname exists or not.
  */
 import java.io.File;
+import java.util.Scanner;
 
 public class Q03PathExistsCheck {
 
@@ -10,8 +11,10 @@ public class Q03PathExistsCheck {
     }
 
     public static void main(String[] args) {
-        System.out.println("sample-data/sample.txt exists? " + exists("sample-data/sample.txt"));
-        System.out.println("sample-data/does-not-exist.txt exists? "
-                + exists("sample-data/does-not-exist.txt"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the path to check: ");
+        String path = scanner.nextLine();
+
+        System.out.println(path + " exists? " + exists(path));
     }
 }

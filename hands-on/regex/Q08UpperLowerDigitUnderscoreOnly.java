@@ -2,6 +2,8 @@
  * 8. Match a string that contains only upper and lowercase letters, numbers,
  * and underscores.
  */
+import java.util.Scanner;
+
 public class Q08UpperLowerDigitUnderscoreOnly {
 
     static boolean matches(String text) {
@@ -9,9 +11,10 @@ public class Q08UpperLowerDigitUnderscoreOnly {
     }
 
     public static void main(String[] args) {
-        System.out.println(matches("Valid_Name_123"));  // true
-        System.out.println(matches("Also_Valid"));      // true
-        System.out.println(matches("Not Valid"));        // false - contains a space
-        System.out.println(matches("Not-Valid"));        // false - contains a hyphen
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
+
+        System.out.println(matches(text));
     }
 }

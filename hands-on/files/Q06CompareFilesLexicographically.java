@@ -3,6 +3,7 @@
  */
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Scanner;
 
 public class Q06CompareFilesLexicographically {
 
@@ -13,9 +14,15 @@ public class Q06CompareFilesLexicographically {
     }
 
     public static void main(String[] args) throws Exception {
-        int result = compareFiles("sample-data/sample.txt", "sample-data/sample2.txt");
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the first file path: ");
+        String path1 = scanner.nextLine();
+        System.out.print("Input the second file path: ");
+        String path2 = scanner.nextLine();
+
+        int result = compareFiles(path1, path2);
         System.out.println("Comparison result: " + result);
         System.out.println(result == 0 ? "Files are identical"
-                : (result < 0 ? "sample.txt comes before sample2.txt" : "sample.txt comes after sample2.txt"));
+                : (result < 0 ? path1 + " comes before " + path2 : path1 + " comes after " + path2));
     }
 }

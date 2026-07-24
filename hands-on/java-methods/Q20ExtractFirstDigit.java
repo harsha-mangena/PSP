@@ -3,6 +3,8 @@
  *
  * Test Data: 1234 -> 1
  */
+import java.util.Scanner;
+
 public class Q20ExtractFirstDigit {
 
     static int firstDigit(int n) {
@@ -14,7 +16,10 @@ public class Q20ExtractFirstDigit {
     }
 
     public static void main(String[] args) {
-        System.out.println("Input an integer (positive/negative): 1234");
-        System.out.println("Extract the first digit from the said integer: " + firstDigit(1234));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input an integer (positive/negative): ");
+        int n = scanner.nextInt();
+
+        System.out.println("Extract the first digit from the said integer: " + firstDigit(n));
     }
 }

@@ -1,12 +1,13 @@
 /**
  * 14. Compute the area of a regular polygon given its number of sides and
- * side length (the sheet titles this "pentagon" but the test data is
- * generic: number of sides = 5, side = 6).
+ * side length.
  *
  * Area = (n * s^2) / (4 * tan(pi / n))
  *
  * Test Data: sides 5, side length 6 -> The area of the pentagon is 61.93718642120281
  */
+import java.util.Scanner;
+
 public class Q14PentagonArea {
 
     static double regularPolygonArea(int sides, double sideLength) {
@@ -14,6 +15,12 @@ public class Q14PentagonArea {
     }
 
     public static void main(String[] args) {
-        System.out.println("The area of the pentagon is " + regularPolygonArea(5, 6));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the number of sides: ");
+        int sides = scanner.nextInt();
+        System.out.print("Input the side: ");
+        double side = scanner.nextDouble();
+
+        System.out.println("The area of the pentagon is " + regularPolygonArea(sides, side));
     }
 }

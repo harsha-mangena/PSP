@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Q07CsvToProductList {
 
@@ -46,7 +47,11 @@ public class Q07CsvToProductList {
     }
 
     public static void main(String[] args) throws Exception {
-        List<Product> products = readProducts(Path.of("sample-data/products.csv"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the CSV file path (e.g. sample-data/products.csv): ");
+        String path = scanner.nextLine();
+
+        List<Product> products = readProducts(Path.of(path));
         for (Product product : products) {
             System.out.println(product);
         }

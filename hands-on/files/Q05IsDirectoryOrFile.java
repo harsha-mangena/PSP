@@ -2,6 +2,7 @@
  * 5. Check if a given pathname is a directory or a file.
  */
 import java.io.File;
+import java.util.Scanner;
 
 public class Q05IsDirectoryOrFile {
 
@@ -12,7 +13,10 @@ public class Q05IsDirectoryOrFile {
     }
 
     public static void main(String[] args) {
-        System.out.println(describe("sample-data"));
-        System.out.println(describe("sample-data/sample.txt"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the path to check: ");
+        String path = scanner.nextLine();
+
+        System.out.println(describe(path));
     }
 }

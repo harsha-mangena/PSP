@@ -8,6 +8,8 @@
  *
  * Test Data: "abcd1234" -> Password is valid: abcd1234
  */
+import java.util.Scanner;
+
 public class Q11PasswordValidator {
 
     static boolean isValidPassword(String password) {
@@ -22,7 +24,10 @@ public class Q11PasswordValidator {
     }
 
     public static void main(String[] args) {
-        String password = "abcd1234";
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a password: ");
+        String password = scanner.nextLine();
+
         if (isValidPassword(password)) {
             System.out.println("Password is valid: " + password);
         } else {

@@ -4,6 +4,8 @@
  *
  * Test Data: 25.586 and 25.589 -> They are different
  */
+import java.util.Scanner;
+
 public class Q06CompareFloatsToThreeDecimals {
 
     static boolean sameToThreeDecimals(double a, double b) {
@@ -13,7 +15,12 @@ public class Q06CompareFloatsToThreeDecimals {
     }
 
     public static void main(String[] args) {
-        double a = 25.586, b = 25.589;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input floating-point number: ");
+        double a = scanner.nextDouble();
+        System.out.print("Input floating-point another number: ");
+        double b = scanner.nextDouble();
+
         System.out.println(sameToThreeDecimals(a, b) ? "They are the same" : "They are different");
     }
 }

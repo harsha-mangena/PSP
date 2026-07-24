@@ -4,12 +4,16 @@
  */
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Scanner;
 
 public class Q16DateDifferenceHMSNano {
 
     public static void main(String[] args) {
-        LocalDateTime start = LocalDateTime.of(2024, 1, 1, 8, 30, 15);
-        LocalDateTime end = LocalDateTime.of(2024, 1, 2, 14, 45, 50);
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the start date-time (yyyy-mm-ddTHH:mm:ss): ");
+        LocalDateTime start = LocalDateTime.parse(scanner.nextLine());
+        System.out.print("Input the end date-time (yyyy-mm-ddTHH:mm:ss): ");
+        LocalDateTime end = LocalDateTime.parse(scanner.nextLine());
 
         Duration duration = Duration.between(start, end);
 

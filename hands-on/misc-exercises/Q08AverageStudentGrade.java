@@ -1,10 +1,12 @@
 /**
- * Given a List of Student objects with fields name and grade, find the
+ * Given a list of Student records with fields name and grade, find the
  * average grade of all students.
  *
- * Input: [{"Alice", 85}, {"Bob", 92}] -> Output: 88.5
+ * Input: Alice 85, Bob 92 -> Output: 88.5
  */
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Q08AverageStudentGrade {
 
@@ -15,7 +17,19 @@ public class Q08AverageStudentGrade {
     }
 
     public static void main(String[] args) {
-        List<Student> students = List.of(new Student("Alice", 85), new Student("Bob", 92));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input how many students: ");
+        int count = scanner.nextInt();
+
+        List<Student> students = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            System.out.print("Input the name for student " + (i + 1) + ": ");
+            String name = scanner.next();
+            System.out.print("Input the grade for student " + (i + 1) + ": ");
+            int grade = scanner.nextInt();
+            students.add(new Student(name, grade));
+        }
+
         System.out.println(averageGrade(students));
     }
 }

@@ -13,6 +13,8 @@
  * 4      1489.35
  * 5      1645.31
  */
+import java.util.Scanner;
+
 public class Q08FutureInvestmentValue {
 
     static double futureValue(double amount, double annualRatePercent, int years) {
@@ -21,9 +23,13 @@ public class Q08FutureInvestmentValue {
     }
 
     public static void main(String[] args) {
-        double amount = 1000;
-        double rate = 10;
-        int years = 5;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the investment amount: ");
+        double amount = scanner.nextDouble();
+        System.out.print("Input the rate of interest: ");
+        double rate = scanner.nextDouble();
+        System.out.print("Input number of years: ");
+        int years = scanner.nextInt();
 
         System.out.println("Years\tFutureValue");
         for (int y = 1; y <= years; y++) {

@@ -3,6 +3,8 @@
  *
  * Test Data: month 2, year 2016 -> February 2016 has 29 days
  */
+import java.util.Scanner;
+
 public class Q07DaysInMonth {
 
     static final String[] MONTH_NAMES = {
@@ -21,7 +23,12 @@ public class Q07DaysInMonth {
     }
 
     public static void main(String[] args) {
-        int month = 2, year = 2016;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a month number: ");
+        int month = scanner.nextInt();
+        System.out.print("Input a year: ");
+        int year = scanner.nextInt();
+
         System.out.println(MONTH_NAMES[month - 1] + " " + year + " has "
                 + daysInMonth(month, year) + " days");
     }

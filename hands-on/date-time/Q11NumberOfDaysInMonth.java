@@ -4,6 +4,7 @@
  * Test Data: month 2 (February), year 2016 -> 29 days
  */
 import java.time.YearMonth;
+import java.util.Scanner;
 
 public class Q11NumberOfDaysInMonth {
 
@@ -12,8 +13,12 @@ public class Q11NumberOfDaysInMonth {
     }
 
     public static void main(String[] args) {
-        System.out.println("Number of days in month 2/2016: " + daysInMonth(2016, 2));
-        System.out.println("Number of days in the current month: "
-                + YearMonth.now().lengthOfMonth());
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a month number: ");
+        int month = scanner.nextInt();
+        System.out.print("Input a year: ");
+        int year = scanner.nextInt();
+
+        System.out.println("Number of days in month " + month + "/" + year + ": " + daysInMonth(year, month));
     }
 }

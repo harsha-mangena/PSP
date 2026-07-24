@@ -3,6 +3,8 @@
  *
  * Input: "hello world" -> Output: "world hello"
  */
+import java.util.Scanner;
+
 public class Q05ReverseWords {
 
     static String reverseWords(String text) {
@@ -16,6 +18,10 @@ public class Q05ReverseWords {
     }
 
     public static void main(String[] args) {
-        System.out.println(reverseWords("hello world"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a sentence: ");
+        String text = scanner.nextLine();
+
+        System.out.println(reverseWords(text));
     }
 }

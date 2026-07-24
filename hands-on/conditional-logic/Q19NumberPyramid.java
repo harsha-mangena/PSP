@@ -8,10 +8,15 @@
  *  3 3 3
  * 4 4 4 4
  */
+import java.util.Scanner;
+
 public class Q19NumberPyramid {
 
     public static void main(String[] args) {
-        int rows = 4;
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input number of rows: ");
+        int rows = scanner.nextInt();
+
         for (int i = 1; i <= rows; i++) {
             StringBuilder row = new StringBuilder();
             row.append(" ".repeat(rows - i));

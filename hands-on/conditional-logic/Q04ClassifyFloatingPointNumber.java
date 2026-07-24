@@ -5,6 +5,8 @@
  *
  * Test Data: 25 -> Input value: 25 / Positive number
  */
+import java.util.Scanner;
+
 public class Q04ClassifyFloatingPointNumber {
 
     static void classify(double value) {
@@ -27,9 +29,10 @@ public class Q04ClassifyFloatingPointNumber {
     }
 
     public static void main(String[] args) {
-        classify(25);
-        classify(0.5);
-        classify(-2_000_000);
-        classify(0);
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a number: ");
+        double value = scanner.nextDouble();
+
+        classify(value);
     }
 }

@@ -4,6 +4,8 @@
  *
  * Test Data: 12541 -> 1
  */
+import java.util.Scanner;
+
 public class Q17CountDigitValue2 {
 
     static int countTwos(int n) {
@@ -16,7 +18,10 @@ public class Q17CountDigitValue2 {
     }
 
     public static void main(String[] args) {
-        System.out.println("Input a number: 12541");
-        System.out.println(countTwos(12541));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a number: ");
+        int n = scanner.nextInt();
+
+        System.out.println(countTwos(n));
     }
 }

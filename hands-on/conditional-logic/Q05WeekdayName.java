@@ -3,6 +3,8 @@
  *
  * Test Data: 3 -> Wednesday
  */
+import java.util.Scanner;
+
 public class Q05WeekdayName {
 
     static String weekdayName(int number) {
@@ -19,6 +21,10 @@ public class Q05WeekdayName {
     }
 
     public static void main(String[] args) {
-        System.out.println(weekdayName(3));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input number: ");
+        int number = scanner.nextInt();
+
+        System.out.println(weekdayName(number));
     }
 }

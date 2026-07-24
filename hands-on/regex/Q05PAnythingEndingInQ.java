@@ -1,6 +1,8 @@
 /**
  * 5. Match a string that has a 'p', followed by anything, ending in 'q'.
  */
+import java.util.Scanner;
+
 public class Q05PAnythingEndingInQ {
 
     static boolean matches(String text) {
@@ -8,10 +10,10 @@ public class Q05PAnythingEndingInQ {
     }
 
     public static void main(String[] args) {
-        System.out.println(matches("pq"));        // true
-        System.out.println(matches("pxyzq"));      // true
-        System.out.println(matches("pqpq"));       // true
-        System.out.println(matches("pxyzr"));      // false - doesn't end in q
-        System.out.println(matches("xpyzq"));      // false - doesn't start with p
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
+
+        System.out.println(matches(text));
     }
 }

@@ -3,6 +3,8 @@
  *
  * Input: 5 -> Output: 120
  */
+import java.util.Scanner;
+
 public class Q10Factorial {
 
     static long factorial(int n) {
@@ -14,6 +16,10 @@ public class Q10Factorial {
     }
 
     public static void main(String[] args) {
-        System.out.println(factorial(5));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a number: ");
+        int n = scanner.nextInt();
+
+        System.out.println(factorial(n));
     }
 }

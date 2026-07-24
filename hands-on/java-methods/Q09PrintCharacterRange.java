@@ -1,6 +1,8 @@
 /**
  * 9. Print characters between two characters (e.g. A to P), 20 per line.
  */
+import java.util.Scanner;
+
 public class Q09PrintCharacterRange {
 
     static void printRange(char from, char to) {
@@ -16,6 +18,12 @@ public class Q09PrintCharacterRange {
     }
 
     public static void main(String[] args) {
-        printRange('A', 'P');
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the starting character: ");
+        char from = scanner.next().charAt(0);
+        System.out.print("Input the ending character: ");
+        char to = scanner.next().charAt(0);
+
+        printRange(from, to);
     }
 }

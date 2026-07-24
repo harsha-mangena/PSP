@@ -1,9 +1,10 @@
 /**
  * 12. Take a number n as input and display an n-by-n matrix of random 0/1
- * values. (Output is random by nature, so there is no fixed expected value
- * to match - this demonstrates the generator with n = 10.)
+ * values. (The matrix content is random by nature, so there is no fixed
+ * expected value to match - only n comes from the user.)
  */
 import java.util.Random;
+import java.util.Scanner;
 
 public class Q12RandomMatrix {
 
@@ -29,7 +30,10 @@ public class Q12RandomMatrix {
     }
 
     public static void main(String[] args) {
-        System.out.println("Input a number: 10");
-        print(randomMatrix(10));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a number: ");
+        int n = scanner.nextInt();
+
+        print(randomMatrix(n));
     }
 }

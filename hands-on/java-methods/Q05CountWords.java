@@ -3,6 +3,8 @@
  *
  * Test Data: "The quick brown fox jumps over the lazy dog." -> 9
  */
+import java.util.Scanner;
+
 public class Q05CountWords {
 
     static int countWords(String text) {
@@ -12,7 +14,10 @@ public class Q05CountWords {
     }
 
     public static void main(String[] args) {
-        String s = "The quick brown fox jumps over the lazy dog.";
-        System.out.println("Number of words in the string: " + countWords(s));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the string: ");
+        String text = scanner.nextLine();
+
+        System.out.println("Number of words in the string: " + countWords(text));
     }
 }

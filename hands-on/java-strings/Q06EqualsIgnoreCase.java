@@ -1,16 +1,19 @@
 /**
  * 6. Compare a given string to another string, ignoring case considerations.
  *
- * "Stephen Edwin King" equals "Walter Winchell"? false
- * "Stephen Edwin King" equals "stephen edwin king"? true
+ * Test Data: "Stephen Edwin King" equals "stephen edwin king"? true
  */
+import java.util.Scanner;
+
 public class Q06EqualsIgnoreCase {
 
     public static void main(String[] args) {
-        String name = "Stephen Edwin King";
-        System.out.println("\"" + name + "\" equals \"Walter Winchell\"? "
-                + name.equalsIgnoreCase("Walter Winchell"));
-        System.out.println("\"" + name + "\" equals \"stephen edwin king\"? "
-                + name.equalsIgnoreCase("stephen edwin king"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the first string: ");
+        String s1 = scanner.nextLine();
+        System.out.print("Input the second string: ");
+        String s2 = scanner.nextLine();
+
+        System.out.println("\"" + s1 + "\" equals \"" + s2 + "\"? " + s1.equalsIgnoreCase(s2));
     }
 }

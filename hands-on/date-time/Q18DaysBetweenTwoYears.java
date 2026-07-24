@@ -5,6 +5,7 @@
  */
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Scanner;
 
 public class Q18DaysBetweenTwoYears {
 
@@ -15,6 +16,13 @@ public class Q18DaysBetweenTwoYears {
     }
 
     public static void main(String[] args) {
-        System.out.println("Number of days between 2016 and 2020: " + daysBetweenYears(2016, 2020));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the first year: ");
+        int year1 = scanner.nextInt();
+        System.out.print("Input the second year: ");
+        int year2 = scanner.nextInt();
+
+        System.out.println("Number of days between " + year1 + " and " + year2 + ": "
+                + daysBetweenYears(year1, year2));
     }
 }

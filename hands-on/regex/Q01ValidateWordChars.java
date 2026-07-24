@@ -4,11 +4,10 @@
  *
  * Test Data:
  * "ABCDEFabcdef123450" -> true
- * "SQL" -> true
- * "Java" -> true
- * "*&^%$#!(" -> false
  * "w3resource.com" -> false (contains a '.')
  */
+import java.util.Scanner;
+
 public class Q01ValidateWordChars {
 
     static boolean validate(String text) {
@@ -16,10 +15,10 @@ public class Q01ValidateWordChars {
     }
 
     public static void main(String[] args) {
-        System.out.println(validate("ABCDEFabcdef123450"));
-        System.out.println(validate("SQL"));
-        System.out.println(validate("Java"));
-        System.out.println(validate("*&^%$#!("));
-        System.out.println(validate("w3resource.com"));
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
+
+        System.out.println(validate(text));
     }
 }

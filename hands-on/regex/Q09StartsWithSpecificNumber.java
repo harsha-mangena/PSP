@@ -1,6 +1,8 @@
 /**
  * 9. Check whether a string starts with a specific number.
  */
+import java.util.Scanner;
+
 public class Q09StartsWithSpecificNumber {
 
     static boolean startsWithNumber(String text, String number) {
@@ -8,8 +10,12 @@ public class Q09StartsWithSpecificNumber {
     }
 
     public static void main(String[] args) {
-        System.out.println(startsWithNumber("5 apples in a basket", "5"));   // true
-        System.out.println(startsWithNumber("123 Main Street", "123"));      // true
-        System.out.println(startsWithNumber("Room 5", "5"));                  // false
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input a string: ");
+        String text = scanner.nextLine();
+        System.out.print("Input the number it should start with: ");
+        String number = scanner.nextLine();
+
+        System.out.println(startsWithNumber(text, number));
     }
 }

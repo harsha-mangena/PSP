@@ -1,15 +1,18 @@
 /**
  * 2. Compare two strings lexicographically, ignoring case differences.
  *
- * String 1: "This is exercise 1"
- * String 2: "This is Exercise 1"
- * -> equal
+ * Test Data: "This is exercise 1", "This is Exercise 1" -> equal
  */
+import java.util.Scanner;
+
 public class Q02CompareIgnoringCase {
 
     public static void main(String[] args) {
-        String s1 = "This is exercise 1";
-        String s2 = "This is Exercise 1";
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Input the first string: ");
+        String s1 = scanner.nextLine();
+        System.out.print("Input the second string: ");
+        String s2 = scanner.nextLine();
 
         System.out.println("String 1: " + s1);
         System.out.println("String 2: " + s2);
