@@ -17,7 +17,7 @@ const browser = await puppeteer.launch({
   args: ['--no-sandbox'],
 })
 const page = await browser.newPage()
- await seedSession(page, session)
+await seedSession(page, session)
 const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
@@ -27,23 +27,41 @@ const cartRows = () =>
     rows.map((tr) => [...tr.querySelectorAll('td')].map((td) => td.innerText.trim())),
   )
 
+const productCardStock = () =>
+  page.$$eval('.product-card', (cards) =>
+    cards.slice(0, 2).map((card) => ({
+      name: card.querySelector('[data-testid="product-name"]')?.innerText.trim(),
+      stock: card.querySelector('.product-card-stock')?.innerText.trim(),
+    })),
+  )
+
+// --- Start from an empty cart (the test user's cart persists across runs
+// against the real backend, so a prior script leaving items behind would
+// otherwise desync the row-count assertions below).
+await page.goto('http://localhost:3000/cart', { waitUntil: 'networkidle0' })
+await sleep(1000)
+for (let guard = 0; guard < 10; guard += 1) {
+  const removed = await page.evaluate(() => {
+    const btn = [...document.querySelectorAll('button')].find(
+      (b) => b.innerText.trim() === 'Remove',
+    )
+    btn?.click()
+    return !!btn
+  })
+  if (!removed) break
+  await sleep(1000)
+}
+
 // --- Add two different products
 await page.goto('http://localhost:3000/products', { waitUntil: 'networkidle0' })
-await sleep(800)
+await sleep(1200)
 
-const stockBefore = await page.$$eval('tbody tr', (rows) =>
-  rows.slice(0, 2).map((tr) => {
-    const td = tr.querySelectorAll('td')
-    return { name: td[1].innerText.trim(), stock: td[3].innerText.trim() }
-  }),
-)
+const stockBefore = await productCardStock()
 
 for (const index of [0, 1]) {
   await page.evaluate((i) => {
-    const buttons = [...document.querySelectorAll('button')].filter(
-      (b) => b.innerText.trim() === 'Add to cart' && !b.disabled,
-    )
-    buttons[i]?.click()
+    const cards = document.querySelectorAll('.product-card')
+    cards[i]?.querySelector('.product-card-actions button.primary')?.click()
   }, index)
   await sleep(1500)
 }
@@ -90,13 +108,8 @@ const orderCards = await page.$$eval('.order-card', (cards) =>
 
 // --- Stock after
 await page.goto('http://localhost:3000/products', { waitUntil: 'networkidle0' })
-await sleep(1000)
-const stockAfter = await page.$$eval('tbody tr', (rows) =>
-  rows.slice(0, 2).map((tr) => {
-    const td = tr.querySelectorAll('td')
-    return { name: td[1].innerText.trim(), stock: td[3].innerText.trim() }
-  }),
-)
+await sleep(1200)
+const stockAfter = await productCardStock()
 
 console.log('STOCK_BEFORE:', JSON.stringify(stockBefore))
 console.log('CART_INITIAL_ROWS:', rowsInitial.length, JSON.stringify(rowsInitial))

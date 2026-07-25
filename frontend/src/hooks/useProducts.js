@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useSearchParams } from 'react-router-dom'
 import {
   deleteProduct,
   fetchProducts,
@@ -12,8 +13,8 @@ import { EMPTY_FILTERS, filterProducts } from '../utils/filterProducts'
 
 /**
  * Owns everything the product list screen needs: initial load, pagination,
- * sorting, filtering and row actions. The page component just renders what
- * this returns.
+ * category, sorting, filtering and row actions. The page component just
+ * renders what this returns.
  */
 export function useProducts() {
   const dispatch = useDispatch()
@@ -21,8 +22,14 @@ export function useProducts() {
   const pagination = useSelector(selectPagination)
   const status = useSelector(selectProductsStatus)
   const error = useSelector(selectProductsError)
+  const [searchParams] = useSearchParams()
 
-  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  // Picks up ?search= from the header's search bar on first load only - after
+  // that the filter panel owns this value.
+  const [filters, setFilters] = useState(() => ({
+    ...EMPTY_FILTERS,
+    search: searchParams.get('search') ?? '',
+  }))
 
   useEffect(() => {
     if (status === 'idle') {
@@ -58,6 +65,12 @@ export function useProducts() {
     [dispatch],
   )
 
+  // Switching category resets to page 0, same reasoning as page size.
+  const changeCategory = useCallback(
+    (category) => dispatch(fetchProducts({ category: category || undefined, page: 0 })),
+    [dispatch],
+  )
+
   const reload = useCallback(() => dispatch(fetchProducts()), [dispatch])
 
   const removeProduct = useCallback((id) => dispatch(deleteProduct(id)), [dispatch])
@@ -75,6 +88,7 @@ export function useProducts() {
     goToPage,
     changePageSize,
     changeSort,
+    changeCategory,
     reload,
     removeProduct,
   }

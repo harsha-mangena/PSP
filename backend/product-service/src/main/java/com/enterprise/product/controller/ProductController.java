@@ -77,10 +77,11 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction) {
-        log.info("GET /api/products/paged page={} size={} sortBy={} direction={}",
-                page, size, sortBy, direction);
-        return ResponseEntity.ok(productService.getProductsPaged(page, size, sortBy, direction));
+            @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false) String category) {
+        log.info("GET /api/products/paged page={} size={} sortBy={} direction={} category={}",
+                page, size, sortBy, direction, category);
+        return ResponseEntity.ok(productService.getProductsPaged(page, size, sortBy, direction, category));
     }
 
     @GetMapping("/in-stock")
@@ -121,6 +122,18 @@ public class ProductController {
                                                        @RequestParam Integer quantity) {
         log.info("POST /api/products/{}/reduce-stock quantity={}", id, quantity);
         return ResponseEntity.ok(productService.reduceStock(id, quantity));
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getCategories() {
+        log.info("GET /api/products/categories");
+        return ResponseEntity.ok(productService.getCategories());
+    }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<ProductResponse>> getProductsByCategory(@PathVariable String category) {
+        log.info("GET /api/products/category/{}", category);
+        return ResponseEntity.ok(productService.getProductsByCategory(category));
     }
 
     /**

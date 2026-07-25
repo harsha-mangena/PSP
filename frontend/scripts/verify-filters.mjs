@@ -1,6 +1,8 @@
 /**
- * Exercises search + price filters and asserts the table narrows in real time
- * without any additional network requests (filtering is client-side/useMemo).
+ * Exercises search + price filters within a category and asserts the grid
+ * narrows in real time without any additional network requests (filtering is
+ * client-side/useMemo). Filters only render once a category is selected, so
+ * this first clicks the Electronics pill.
  */
 import puppeteer from 'puppeteer-core'
 import { seedSession, fetchSession } from './lib/session.mjs'
@@ -15,25 +17,28 @@ const browser = await puppeteer.launch({
   args: ['--no-sandbox'],
 })
 const page = await browser.newPage()
- await seedSession(page, session)
+await seedSession(page, session)
 const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
 
-await page.goto('http://localhost:3000', { waitUntil: 'networkidle0' })
-await new Promise((r) => setTimeout(r, 800))
+await page.goto('http://localhost:3000/products', { waitUntil: 'networkidle0' })
+await new Promise((r) => setTimeout(r, 1000))
 
-const productRows = () =>
-  page.$$eval('table', (tables) => tables[0].querySelectorAll('tbody tr').length)
+await page.evaluate(() => {
+  const pill = [...document.querySelectorAll('.category-pill')].find(
+    (el) => el.innerText.trim() === 'Electronics',
+  )
+  pill?.click()
+})
+await new Promise((r) => setTimeout(r, 900))
 
 const names = () =>
-  page.$$eval('table', (tables) =>
-    [...tables[0].querySelectorAll('tbody tr')].map(
-      (tr) => tr.querySelectorAll('td')[1].innerText.trim(),
-    ),
+  page.$$eval('.product-card [data-testid="product-name"]', (els) =>
+    els.map((el) => el.innerText.trim()),
   )
 
-const baseline = await productRows()
+const baseline = await names()
 
 // Count network calls from here on, to prove filtering does not refetch.
 let apiCalls = 0
@@ -42,17 +47,17 @@ page.on('request', (req) => {
 })
 
 // --- search
-await page.type('input[name="search"]', 'o')
+await page.type('input[name="search"]', 'Pro')
 await new Promise((r) => setTimeout(r, 500))
-const afterSearch = await names()
+const afterPro = await names()
 
 await page.$eval('input[name="search"]', (el) => {
   el.value = ''
   el.dispatchEvent(new Event('input', { bubbles: true }))
 })
-await page.type('input[name="search"]', 'keyb')
+await page.type('input[name="search"]', 'Laptop')
 await new Promise((r) => setTimeout(r, 500))
-const afterKeyb = await names()
+const afterLaptop = await names()
 
 // --- price filter (reset search first)
 await page.click('button::-p-text(Reset)')
@@ -70,9 +75,9 @@ const afterInStock = await names()
 
 const countText = await page.$eval('.filters-count', (el) => el.innerText.trim())
 
-console.log('BASELINE_ROWS:', baseline)
-console.log('SEARCH_o:', JSON.stringify(afterSearch))
-console.log('SEARCH_keyb:', JSON.stringify(afterKeyb))
+console.log('BASELINE:', JSON.stringify(baseline))
+console.log('SEARCH_Pro:', JSON.stringify(afterPro))
+console.log('SEARCH_Laptop:', JSON.stringify(afterLaptop))
 console.log('MIN_PRICE_200:', JSON.stringify(afterMinPrice))
 console.log('IN_STOCK_ONLY:', JSON.stringify(afterInStock))
 console.log('COUNT_LABEL:', countText)
@@ -82,11 +87,16 @@ console.log('ERRORS:', errors.length ? errors : 'none')
 await browser.close()
 
 const ok =
-  afterKeyb.length === 1 &&
-  afterKeyb[0] === 'Keyboard' &&
-  afterSearch.length < baseline &&
-  afterMinPrice.every((n) => n !== 'Keyboard') &&
-  !afterInStock.includes('Webcam') &&
+  baseline.length === 5 &&
+  afterPro.length === 2 &&
+  afterPro.includes('Laptop Pro 15') &&
+  afterPro.includes('Wireless Earbuds Pro') &&
+  afterLaptop.length === 1 &&
+  afterLaptop[0] === 'Laptop Pro 15' &&
+  afterMinPrice.length === 3 &&
+  !afterMinPrice.includes('Wireless Earbuds Pro') &&
+  !afterMinPrice.includes('Portable Bluetooth Speaker') &&
+  afterInStock.length === 5 &&
   apiCalls === 0 &&
   errors.length === 0
 

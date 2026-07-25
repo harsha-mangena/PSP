@@ -29,13 +29,6 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="app-header">
-        <h1>Enterprise Store</h1>
-        <p className="muted">
-          React 18 + Redux Toolkit frontend for the Product / Cart microservices.
-        </p>
-      </header>
-
       {isLoggedIn && <NavBar />}
 
       <main>

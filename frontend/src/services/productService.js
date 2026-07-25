@@ -9,10 +9,22 @@ export const productService = {
     return data
   },
 
-  getPaged: async ({ page = 0, size = 10, sortBy = 'id', direction = 'asc' } = {}) => {
+  getPaged: async ({ page = 0, size = 10, sortBy = 'id', direction = 'asc', category } = {}) => {
+    // axios omits params whose value is undefined, so a falsy category means
+    // "browse everything" rather than sending an empty string to the server.
     const { data } = await api.get('/api/products/paged', {
-      params: { page, size, sortBy, direction },
+      params: { page, size, sortBy, direction, category: category || undefined },
     })
+    return data
+  },
+
+  getCategories: async () => {
+    const { data } = await api.get('/api/products/categories')
+    return data
+  },
+
+  getByCategory: async (category) => {
+    const { data } = await api.get(`/api/products/category/${encodeURIComponent(category)}`)
     return data
   },
 

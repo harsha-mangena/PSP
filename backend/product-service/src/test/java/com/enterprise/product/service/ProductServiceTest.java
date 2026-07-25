@@ -56,7 +56,7 @@ class ProductServiceTest {
 
         @Test
         void persistsAndReturnsTheSavedProduct() {
-            ProductRequest request = new ProductRequest("Keyboard", new BigDecimal("89.99"), 40);
+            ProductRequest request = new ProductRequest("Keyboard", new BigDecimal("89.99"), 40, null, null);
             when(productRepository.save(any(Product.class)))
                     .thenReturn(product(1, "Keyboard", "89.99", 40));
 
@@ -70,7 +70,7 @@ class ProductServiceTest {
 
         @Test
         void mapsEveryRequestFieldOntoTheEntity() {
-            ProductRequest request = new ProductRequest("Dock", new BigDecimal("199.00"), 8);
+            ProductRequest request = new ProductRequest("Dock", new BigDecimal("199.00"), 8, null, null);
             when(productRepository.save(any(Product.class)))
                     .thenReturn(product(7, "Dock", "199.00", 8));
 
@@ -117,7 +117,7 @@ class ProductServiceTest {
             when(productRepository.save(any(Product.class))).thenAnswer(call -> call.getArgument(0));
 
             ProductResponse response = productService.updateProduct(
-                    1, new ProductRequest("New", new BigDecimal("25.50"), 9));
+                    1, new ProductRequest("New", new BigDecimal("25.50"), 9, null, null));
 
             assertThat(response.getName()).isEqualTo("New");
             assertThat(response.getPrice()).isEqualByComparingTo("25.50");
@@ -129,7 +129,7 @@ class ProductServiceTest {
             when(productRepository.findById(404)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> productService.updateProduct(
-                    404, new ProductRequest("x", BigDecimal.ONE, 1)))
+                    404, new ProductRequest("x", BigDecimal.ONE, 1, null, null)))
                     .isInstanceOf(ProductNotFoundException.class);
             verify(productRepository, never()).save(any());
         }
@@ -280,7 +280,7 @@ class ProductServiceTest {
                     5));
 
             PagedResponse<ProductResponse> response =
-                    productService.getProductsPaged(0, 2, "id", "asc");
+                    productService.getProductsPaged(0, 2, "id", "asc", null);
 
             assertThat(response.getContent()).hasSize(2);
             assertThat(response.getTotalElements()).isEqualTo(5);
@@ -294,7 +294,7 @@ class ProductServiceTest {
             when(productRepository.findAll(any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of()));
 
-            productService.getProductsPaged(1, 5, "price", "desc");
+            productService.getProductsPaged(1, 5, "price", "desc", null);
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
             verify(productRepository).findAll(captor.capture());
@@ -309,7 +309,7 @@ class ProductServiceTest {
             when(productRepository.findAll(any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of()));
 
-            productService.getProductsPaged(0, 5, "name", "sideways");
+            productService.getProductsPaged(0, 5, "name", "sideways", null);
 
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
             verify(productRepository).findAll(captor.capture());

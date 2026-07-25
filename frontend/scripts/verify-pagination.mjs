@@ -1,6 +1,8 @@
 /**
- * Verifies pagination is backend-driven: Next/Prev and page numbers each issue
- * a /api/products/paged request and swap the rendered rows.
+ * Verifies pagination is backend-driven: Next/Prev and page-size changes each
+ * issue a /api/products/paged request and swap the rendered cards. Pagination
+ * only renders once a category is selected, and each seeded category has
+ * just 5 products, so this drops the page size to 2 to get multiple pages.
  */
 import puppeteer from 'puppeteer-core'
 import { seedSession, fetchSession } from './lib/session.mjs'
@@ -15,7 +17,7 @@ const browser = await puppeteer.launch({
   args: ['--no-sandbox'],
 })
 const page = await browser.newPage()
- await seedSession(page, session)
+await seedSession(page, session)
 const errors = []
 const pagedRequests = []
 page.on('pageerror', (e) => errors.push(e.message))
@@ -26,54 +28,60 @@ page.on('request', (req) => {
   }
 })
 
-await page.goto('http://localhost:3000', { waitUntil: 'networkidle0' })
-await new Promise((r) => setTimeout(r, 800))
+await page.goto('http://localhost:3000/products', { waitUntil: 'networkidle0' })
+await new Promise((r) => setTimeout(r, 900))
 
-const ids = () =>
-  page.$$eval('table', (tables) =>
-    [...tables[0].querySelectorAll('tbody tr')].map((tr) =>
-      tr.querySelectorAll('td')[0].innerText.trim(),
-    ),
+await page.evaluate(() => {
+  const pill = [...document.querySelectorAll('.category-pill')].find(
+    (el) => el.innerText.trim() === 'Electronics',
+  )
+  pill?.click()
+})
+await new Promise((r) => setTimeout(r, 900))
+
+await page.select('.pagination-size select', '2')
+await new Promise((r) => setTimeout(r, 900))
+
+const names = () =>
+  page.$$eval('.product-card [data-testid="product-name"]', (els) =>
+    els.map((el) => el.innerText.trim()),
   )
 
 const info = () => page.$eval('.pagination-info', (el) => el.innerText.trim())
 
-const page1 = await ids()
+const page1 = await names()
 const info1 = await info()
 
 await page.click('button::-p-text(Next)')
 await new Promise((r) => setTimeout(r, 900))
-const page2 = await ids()
+const page2 = await names()
 const info2 = await info()
 
 await page.click('button::-p-text(Prev)')
 await new Promise((r) => setTimeout(r, 900))
-const backTo1 = await ids()
+const backTo1 = await names()
 
 // Sorting: price high -> low, should restart at page 1
 await page.select('.sort-control select', 'price:desc')
 await new Promise((r) => setTimeout(r, 900))
-const sortedNames = await page.$$eval('table', (tables) =>
-  [...tables[0].querySelectorAll('tbody tr')].map((tr) =>
-    tr.querySelectorAll('td')[1].innerText.trim(),
-  ),
-)
+const sortedNames = await names()
 
-console.log('PAGE_1_IDS:', JSON.stringify(page1), '|', info1)
-console.log('PAGE_2_IDS:', JSON.stringify(page2), '|', info2)
-console.log('BACK_TO_1_IDS:', JSON.stringify(backTo1))
+console.log('PAGE_1:', JSON.stringify(page1), '|', info1)
+console.log('PAGE_2:', JSON.stringify(page2), '|', info2)
+console.log('BACK_TO_1:', JSON.stringify(backTo1))
 console.log('SORTED_PRICE_DESC:', JSON.stringify(sortedNames))
 console.log('PAGED_REQUESTS:', JSON.stringify(pagedRequests))
 console.log('ERRORS:', errors.length ? errors : 'none')
 
 await browser.close()
 
-const disjoint = page1.every((id) => !page2.includes(id))
+const disjoint = page1.every((name) => !page2.includes(name))
 const ok =
-  page1.length > 0 &&
-  page2.length > 0 &&
+  page1.length === 2 &&
+  page2.length === 2 &&
   disjoint &&
   JSON.stringify(backTo1) === JSON.stringify(page1) &&
+  sortedNames[0] === 'Laptop Pro 15' &&
   pagedRequests.length >= 4 &&
   errors.length === 0
 

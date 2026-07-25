@@ -21,7 +21,7 @@ page.on('pageerror', (e) => errors.push(e.message))
 await page.goto('http://localhost:3000/products', { waitUntil: 'networkidle0' })
 await sleep(700)
 const redirectedUrl = page.url()
-const hasNavWhenLoggedOut = await page.evaluate(() => !!document.querySelector('.navbar'))
+const hasNavWhenLoggedOut = await page.evaluate(() => !!document.querySelector('.site-header'))
 
 // --- 2. Wrong credentials
 await page.type('input[name="username"]', 'root')
@@ -45,16 +45,17 @@ await sleep(2000)
 
 const afterLoginUrl = page.url()
 const navUser = await page.evaluate(() => {
-  const el = document.querySelector('.navbar-user')
+  const el = document.querySelector('.user-chip')
   return el ? el.innerText.replace(/\n+/g, ' ').trim() : null
 })
-const productRows = await page.$$eval('tbody tr', (rows) => rows.length)
+await sleep(1200)
+const productRows = await page.$$eval('.product-card', (rows) => rows.length)
 
 // --- 4. Session survives a reload
 await page.reload({ waitUntil: 'networkidle0' })
 await sleep(1500)
 const urlAfterReload = page.url()
-const stillSignedIn = await page.evaluate(() => !!document.querySelector('.navbar-user'))
+const stillSignedIn = await page.evaluate(() => !!document.querySelector('.user-chip'))
 
 // --- 5. Sign out
 await page.evaluate(() => {

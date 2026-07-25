@@ -29,4 +29,10 @@ public class ProductRequest {
     @NotNull(message = "stock is required")
     @Min(value = 0, message = "stock cannot be negative")
     private Integer stock;
+
+    @Size(max = 100, message = "category must be at most 100 characters")
+    private String category;
+
+    @Size(max = 50, message = "imageKey must be at most 50 characters")
+    private String imageKey;
 }

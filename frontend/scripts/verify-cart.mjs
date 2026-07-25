@@ -1,5 +1,6 @@
 /**
- * Clicks "Add to cart" in a real browser and asserts the cart table updates.
+ * Clicks "Add to Cart" on the first product card in the storefront home and
+ * asserts the cart page's line-item table updates.
  */
 import puppeteer from 'puppeteer-core'
 import { seedSession, fetchSession } from './lib/session.mjs'
@@ -14,51 +15,43 @@ const browser = await puppeteer.launch({
   args: ['--no-sandbox'],
 })
 const page = await browser.newPage()
- await seedSession(page, session)
+await seedSession(page, session)
 const errors = []
 page.on('pageerror', (e) => errors.push(e.message))
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
 
-await page.goto('http://localhost:3000', { waitUntil: 'networkidle0' })
-await new Promise((r) => setTimeout(r, 800))
+await page.goto('http://localhost:3000/products', { waitUntil: 'networkidle0' })
+await new Promise((r) => setTimeout(r, 1200))
 
-const cartRowsBefore = await page.$$eval('table', (tables) => {
-  const cart = tables[tables.length - 1]
-  return cart.querySelectorAll('tbody tr').length
-})
+const cartRowsBefore = await page.$$eval('table tbody tr', (rows) => rows.length)
 
-// First "Add to cart" button in the products table.
-const clicked = await page.evaluate(() => {
-  const btn = [...document.querySelectorAll('button')].find(
-    (b) => b.innerText.trim() === 'Add to cart' && !b.disabled,
-  )
-  if (!btn) return null
-  const row = btn.closest('tr')
-  const name = row.querySelectorAll('td')[1].innerText.trim()
-  btn.click()
+const clickedName = await page.evaluate(() => {
+  const card = document.querySelector('.product-card')
+  const name = card?.querySelector('[data-testid="product-name"]')?.innerText.trim()
+  card?.querySelector('.product-card-actions button.primary')?.click()
   return name
 })
 
-await new Promise((r) => setTimeout(r, 2500))
+await new Promise((r) => setTimeout(r, 2000))
+await page.goto('http://localhost:3000/cart', { waitUntil: 'networkidle0' })
+await new Promise((r) => setTimeout(r, 800))
 
-const result = await page.evaluate(() => {
-  const tables = [...document.querySelectorAll('table')]
-  const cart = tables[tables.length - 1]
-  const rows = [...cart.querySelectorAll('tbody tr')].map((tr) =>
-    [...tr.querySelectorAll('td')].map((td) => td.innerText.trim()),
-  )
-  return { rows, bodyText: document.body.innerText }
-})
+const cartRowsAfter = await page.$$eval('table tbody tr', (rows) =>
+  rows.map((tr) => [...tr.querySelectorAll('td')].map((td) => td.innerText.trim())),
+)
 
-console.log('CLICKED_PRODUCT:', clicked)
+console.log('CLICKED_PRODUCT:', clickedName)
 console.log('CART_ROWS_BEFORE:', cartRowsBefore)
-console.log('CART_ROWS_AFTER:', result.rows.length)
-console.log('CART_CONTENTS:', JSON.stringify(result.rows))
-console.log('SUCCESS_BANNER:', result.bodyText.includes('Added to cart.'))
+console.log('CART_ROWS_AFTER:', JSON.stringify(cartRowsAfter))
 console.log('ERRORS:', errors.length ? errors : 'none')
 
 await browser.close()
 
-const ok = clicked && result.rows.length > 0 && errors.length === 0
+const ok =
+  !!clickedName &&
+  cartRowsAfter.length > 0 &&
+  cartRowsAfter.some((row) => row[0] === clickedName) &&
+  errors.length === 0
+
 console.log('RESULT:', ok ? 'PASS' : 'FAIL')
 process.exit(ok ? 0 : 1)

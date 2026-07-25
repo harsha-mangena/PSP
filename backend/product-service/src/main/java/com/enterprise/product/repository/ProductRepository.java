@@ -1,6 +1,8 @@
 package com.enterprise.product.repository;
 
 import com.enterprise.product.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,4 +28,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             nativeQuery = true)
     List<Product> findLowStockProducts(@Param("threshold") Integer threshold,
                                        @Param("limit") Integer limit);
+
+    List<Product> findByCategoryOrderByName(String category);
+
+    Page<Product> findByCategory(String category, Pageable pageable);
+
+    @Query("SELECT DISTINCT p.category FROM Product p WHERE p.category IS NOT NULL ORDER BY p.category")
+    List<String> findDistinctCategories();
 }

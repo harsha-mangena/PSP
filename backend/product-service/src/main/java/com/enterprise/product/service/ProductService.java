@@ -63,6 +63,8 @@ public class ProductService {
         product.setName(request.getName());
         product.setPrice(request.getPrice());
         product.setStock(request.getStock());
+        product.setCategory(request.getCategory());
+        product.setImageKey(request.getImageKey());
 
         Product updated = productRepository.save(product);
         log.info("Updated product id={}", updated.getId());
@@ -84,13 +86,18 @@ public class ProductService {
      */
     @Transactional(readOnly = true)
     public PagedResponse<ProductResponse> getProductsPaged(int page, int size,
-                                                           String sortBy, String direction) {
+                                                           String sortBy, String direction,
+                                                           String category) {
         Sort.Direction sortDirection = "desc".equalsIgnoreCase(direction)
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
-        Page<Product> productPage = productRepository.findAll(pageable);
+        // A blank category means "browse everything"; a specific one narrows the
+        // same paginated query rather than replacing it with a separate code path.
+        Page<Product> productPage = (category == null || category.isBlank())
+                ? productRepository.findAll(pageable)
+                : productRepository.findByCategory(category, pageable);
 
         List<ProductResponse> content = productPage.getContent().stream()
                 .map(ProductMapper::toResponse)
@@ -175,6 +182,18 @@ public class ProductService {
         log.info("Reduced stock for product id={} by {} -> {} remaining",
                 id, quantity, saved.getStock());
         return ProductMapper.toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getProductsByCategory(String category) {
+        return productRepository.findByCategoryOrderByName(category).stream()
+                .map(ProductMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getCategories() {
+        return productRepository.findDistinctCategories();
     }
 
     /**

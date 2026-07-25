@@ -76,6 +76,7 @@ const initialState = {
     size: 5,
     sortBy: 'id',
     direction: 'asc',
+    category: null,
     totalPages: 0,
     totalElements: 0,
     first: true,
@@ -117,6 +118,7 @@ const productsSlice = createSlice({
           size: data.size,
           sortBy: params.sortBy,
           direction: params.direction,
+          category: params.category ?? null,
           // ...while the envelope is authoritative for the totals.
           totalPages: data.totalPages,
           totalElements: data.totalElements,

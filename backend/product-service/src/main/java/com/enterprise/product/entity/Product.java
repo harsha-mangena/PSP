@@ -35,4 +35,15 @@ public class Product {
 
     @Column(nullable = false)
     private Integer stock;
+
+    @Column(length = 100)
+    private String category;
+
+    /**
+     * Not a hotlinked photo - holds a short icon key (e.g. "laptop") that the
+     * frontend renders as a generated SVG tile. Avoids depending on external
+     * image hosts and sidesteps any stock-photo licensing question entirely.
+     */
+    @Column(name = "image_key", length = 50)
+    private String imageKey;
 }

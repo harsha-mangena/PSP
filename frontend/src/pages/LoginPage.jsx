@@ -56,8 +56,10 @@ function LoginPage() {
   return (
     <div className="login-wrap">
       <section className="card login-card">
-        <h2>Sign in</h2>
-        <p className="muted login-sub">Enterprise Store</p>
+        <h2 className="brand-logo login-brand">
+          Bazaar<span>io</span>
+        </h2>
+        <p className="muted login-sub">Sign in to continue</p>
 
         <form onSubmit={handleSubmit}>
           <label className="login-field">
