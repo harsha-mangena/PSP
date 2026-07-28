@@ -66,6 +66,40 @@ pipeline {
                 }
             }
         }
+
+        // Builds a tagged image per service from the jar/bundle the stages
+        // above already produced. Only builds/tags locally - no registry
+        // push is configured, since that needs registry credentials this
+        // pipeline doesn't have yet.
+        stage('Docker Images') {
+            parallel {
+                stage('discovery-server') {
+                    steps {
+                        sh "docker build -t psp/discovery-server:${env.BUILD_NUMBER} -t psp/discovery-server:latest backend/discovery-server"
+                    }
+                }
+                stage('product-service') {
+                    steps {
+                        sh "docker build -t psp/product-service:${env.BUILD_NUMBER} -t psp/product-service:latest backend/product-service"
+                    }
+                }
+                stage('cart-service') {
+                    steps {
+                        sh "docker build -t psp/cart-service:${env.BUILD_NUMBER} -t psp/cart-service:latest backend/cart-service"
+                    }
+                }
+                stage('api-gateway') {
+                    steps {
+                        sh "docker build -t psp/api-gateway:${env.BUILD_NUMBER} -t psp/api-gateway:latest backend/api-gateway"
+                    }
+                }
+                stage('frontend') {
+                    steps {
+                        sh "docker build -t psp/frontend:${env.BUILD_NUMBER} -t psp/frontend:latest frontend"
+                    }
+                }
+            }
+        }
     }
 
     post {
