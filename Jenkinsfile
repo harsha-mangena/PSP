@@ -21,8 +21,10 @@ pipeline {
 
     environment {
         // The launchd job Homebrew installs for Jenkins doesn't source
-        // .zshrc/.bashrc, so nvm's node is invisible unless added here.
-        PATH = "/opt/homebrew/opt/openjdk@17/bin:${HOME}/.nvm/versions/node/v24.18.0/bin:${env.PATH}"
+        // .zshrc/.bashrc, so tools installed outside the base system PATH
+        // (nvm's node, Docker Desktop's CLI symlink) are invisible unless
+        // added here explicitly.
+        PATH = "/opt/homebrew/opt/openjdk@17/bin:${HOME}/.nvm/versions/node/v24.18.0/bin:/usr/local/bin:${env.PATH}"
     }
 
     stages {
