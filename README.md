@@ -282,6 +282,23 @@ node scripts/verify-orders.mjs      # quantity, remove, pay, order history, stoc
 
 They require Google Chrome at the standard macOS path.
 
+## Continuous Integration
+
+A Jenkins pipeline (`Jenkinsfile`, repo root) runs on every push to `main`:
+
+1. **Backend** — `./mvnw clean verify` for all four services in parallel
+   (`discovery-server`, `product-service`, `cart-service`, `api-gateway`),
+   same H2-backed tests as above, no Docker required.
+2. **Frontend** — `npm ci && npm run lint && npm run build`.
+3. **Docker Images** — once tests pass, builds and tags a `psp/<service>`
+   image per service (five in parallel: the four backend services plus
+   `frontend`, which multi-stage builds into an nginx image with an SPA
+   fallback for React Router). Local tag only, no registry push yet.
+
+Jenkins polls GitHub every 5 minutes (`pollSCM`) rather than using a webhook,
+since it only listens on `localhost` here — no public endpoint for GitHub to
+call.
+
 ## Commit map
 
 Part 1: `1A-setup` · `1B-entity-layer` · `1C-repository-layer` · `1D-service-layer`
